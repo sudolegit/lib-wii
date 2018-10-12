@@ -1,0 +1,7 @@
+build
+dist
+latex
+*.mcs
+*.mcw
+*.mptags
+*.tagsrc
