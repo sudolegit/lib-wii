@@ -8,7 +8,7 @@ dir_src=
 dir_bin=dist
 dir_tmp=build
 dir_sin=
-dir_inc=
+dir_inc=include
 dir_lib=C:\Program Files (x86)\Microchip\mplabc32\v2.02\pic32mx\lib
 dir_lkr=
 [CAT_FILTERS]
