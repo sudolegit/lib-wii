@@ -25,6 +25,15 @@
 // CONSTANTS
 //--------------------------------------------------------------------------------------------------
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+//!	@brief			Enum of return code values.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+typedef enum _I2C_RC
+{
+	I2C_RC_SUCCESS					= 0											//!< Successfully completed task(s).
+} I2C_RC;
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 //!	@brief			Enum of available clock rates supported by Wii devices.
 //!	
 //!	@note			This is not a list of all I2C supported rates. Rather, this is a list of known 
@@ -69,7 +78,7 @@ typedef struct _I2C_Port
 //==================================================================================================
 // FUNCTION PROTOTYPES
 //--------------------------------------------------------------------------------------------------
-int32_t		I2C_InitPort(I2C_Port *port, uint32_t pbClk);
+I2C_RC		I2C_InitPort(I2C_Port *port, uint32_t pbClk);
 
 
 #endif	// __I2C__

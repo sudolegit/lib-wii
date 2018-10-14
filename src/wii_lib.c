@@ -37,9 +37,10 @@ static	I2C_Port	i2c_port;													// Instance of I2C port communication will
 //!										I2C initialization).
 //!	@param[in]		target				Target type. Should be of type 'WII_LIB_TARGET_DEVICE'.
 //!	
-//!	@retval			WII_LIB_SUCCESS		Successfully initialized target.
+//!	@returns		Return code corresponding to an entry in the 'WII_LIB_RC' enum (zero == success; 
+//!					non-zero == error code). Please see enum definition for details.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-uint32_t WiiLib_Init(I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE target)
+WII_LIB_RC WiiLib_Init(I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE target)
 {
 	// Prepare I2C port for communication as a master device.
 	i2c_port.config		= I2C_ENABLE_SLAVE_CLOCK_STRETCHING | I2C_STOP_IN_IDLE;
@@ -63,6 +64,6 @@ uint32_t WiiLib_Init(I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE ta
 		
 	}
 	
-	return WII_LIB_SUCCESS;
+	return WII_LIB_RC_SUCCESS;
 	
 }

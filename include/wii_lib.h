@@ -20,6 +20,15 @@
 // CONSTANTS
 //--------------------------------------------------------------------------------------------------
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+//!	@brief			Enum of return code values.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+typedef enum _WII_LIB_RC
+{
+	WII_LIB_RC_SUCCESS								= 0							//!< Successfully completed task(s).
+} WII_LIB_RC;
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 //!	@brief			Defines constants used as abstractions to indicate target device type. 
 //!					Referenced to determine initialization process, register settings, and how to 
 //!					interpret received data.
@@ -35,7 +44,7 @@ typedef enum _WII_LIB_TARGET_DEVICE
 //==================================================================================================
 // FUNCTION PROTOTYPES
 //--------------------------------------------------------------------------------------------------
-uint32_t WiiLib_Init(I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE target);
+WII_LIB_RC	WiiLib_Init(I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE target);
 
 
 

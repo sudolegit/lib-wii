@@ -29,9 +29,10 @@
 //!	@param[in]		pbClk				Current peripheral bus clock for device (referenced during 
 //!										I2C initialization).
 //!	
-//!	@retval			I2C_SUCCESS			Successfully initialized target.
+//!	@returns		Return code corresponding to an entry in the 'I2C_RC' enum (zero == success; 
+//!					non-zero == error code). Please see enum definition for details.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-int32_t I2C_InitPort(I2C_Port *port, uint32_t pbClk)
+I2C_RC I2C_InitPort(I2C_Port *port, uint32_t pbClk)
 {
 	I2CEnable(port->module, FALSE);
 	
@@ -40,9 +41,8 @@ int32_t I2C_InitPort(I2C_Port *port, uint32_t pbClk)
 	
 	I2CEnable(port->module, TRUE);
 	
-	return I2C_SUCCESS;
+	return I2C_RC_SUCCESS;
 }
-
 
 
 
