@@ -42,7 +42,7 @@ typedef enum _WII_LIB_TARGET_DEVICE
 
 
 //==================================================================================================
-// FUNCTION PROTOTYPES
+// PUBLIC FUNCTION PROTOTYPES
 //--------------------------------------------------------------------------------------------------
 WII_LIB_RC	WiiLib_Init(I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE target);
 

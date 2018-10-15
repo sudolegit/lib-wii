@@ -29,7 +29,10 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 typedef enum _I2C_RC
 {
-	I2C_RC_SUCCESS					= 0											//!< Successfully completed task(s).
+	I2C_RC_SUCCESS					= 0,										//!< Successfully completed task(s).
+	I2C_RC_START_FAILED				= 1,										//!< Failed to set start condition (as I2C master).
+	I2C_RC_RESTART_FAILED			= 2											//!< Failed to send restart message (as I2C master).
+
 } I2C_RC;
 
 
@@ -76,7 +79,7 @@ typedef struct _I2C_Port
 
 
 //==================================================================================================
-// FUNCTION PROTOTYPES
+// PUBLIC FUNCTION PROTOTYPES
 //--------------------------------------------------------------------------------------------------
 I2C_RC		I2C_InitPort(I2C_Port *port, uint32_t pbClk);
 
