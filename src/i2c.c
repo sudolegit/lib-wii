@@ -19,8 +19,8 @@
 //==================================================================================================
 // PRIVATE FUNCTION PROTOTYPES
 //--------------------------------------------------------------------------------------------------
-I2C_RC		I2C_StartTransfer(I2C_Port *port, BOOL restart);
-I2C_RC		I2C_StopTransfer( I2C_Port *port );
+I2C_RC		I2C_StartTransfer(I2C_Device *device, BOOL restart);
+I2C_RC		I2C_StopTransfer( I2C_Device *device );
 
 
 
@@ -31,7 +31,7 @@ I2C_RC		I2C_StopTransfer( I2C_Port *port );
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //!	@brief			Initializes the target I2C port.
 //!	
-//!	@param[in]		*port				Instance of 'I2C_Port{}' struct. Values used to define 
+//!	@param[in]		*port				Instance of 'I2C_Device{}' struct. Values used to define 
 //!										target to initialize and how it should be initialized.
 //!	@param[in]		pbClk				Current peripheral bus clock for device (referenced during 
 //!										I2C initialization).
@@ -39,14 +39,14 @@ I2C_RC		I2C_StopTransfer( I2C_Port *port );
 //!	@returns		Return code corresponding to an entry in the 'I2C_RC' enum (zero == success; 
 //!					non-zero == error code). Please see enum definition for details.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-I2C_RC I2C_InitPort(I2C_Port *port, uint32_t pbClk)
+I2C_RC I2C_InitPort(I2C_Device *device, uint32_t pbClk)
 {
-	I2CEnable(port->module, FALSE);
+	I2CEnable(device->module, FALSE);
 	
-	I2CConfigure(port->module, port->config);
-	I2CSetFrequency(port->module, pbClk, port->clkFreq);
+	I2CConfigure(device->module, device->config);
+	I2CSetFrequency(device->module, pbClk, device->clkFreq);
 	
-	I2CEnable(port->module, TRUE);
+	I2CEnable(device->module, TRUE);
 	
 	return I2C_RC_SUCCESS;
 }
@@ -69,28 +69,28 @@ I2C_RC I2C_InitPort(I2C_Port *port, uint32_t pbClk)
 //!	@note			A "restart" condition is sending a start message while a data payload is already 
 //!					actively in transfer. 
 //!	
-//!	@param[in]		*port				Instance of 'I2C_Port{}' struct.
+//!	@param[in]		*port				Instance of 'I2C_Device{}' struct.
 //!	@param[in]		restart				Flag indicating if a 'restart' message should be sent.
 //!	
 //!	@returns		Return code corresponding to an entry in the 'I2C_RC' enum (zero == success; 
 //!					non-zero == error code). Please see enum definition for details.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-I2C_RC I2C_StartTransfer(I2C_Port *port, BOOL restart)
+I2C_RC I2C_StartTransfer(I2C_Device *device, BOOL restart)
 {
 	if( restart )
 	{
-		if( I2CRepeatStart( port->module ) != I2C_SUCCESS )
+		if( I2CRepeatStart( device->module ) != I2C_SUCCESS )
 			return I2C_RC_RESTART_FAILED;
 	} else
 	{
-		while( !I2CBusIsIdle( port->module ) );
+		while( !I2CBusIsIdle( device->module ) );
 		
-		if( I2CStart( port->module ) != I2C_SUCCESS )
+		if( I2CStart( device->module ) != I2C_SUCCESS )
 			return I2C_RC_START_FAILED;
 		
 	}
 	
-	while( !I2CBusIsIdle( port->module ) );
+	while( !I2CBusIsIdle( device->module ) );
 	
 	return I2C_RC_SUCCESS;
 	
@@ -105,16 +105,16 @@ I2C_RC I2C_StartTransfer(I2C_Port *port, BOOL restart)
 //!	
 //!	@warning		This is a blocking function. It will not return until the bus is idle.
 //!	
-//!	@param[in]		*port				Instance of 'I2C_Port{}' struct.
+//!	@param[in]		*port				Instance of 'I2C_Device{}' struct.
 //!	
 //!	@returns		Return code corresponding to an entry in the 'I2C_RC' enum (zero == success; 
 //!					non-zero == error code). Please see enum definition for details.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-I2C_RC I2C_StopTransfer( I2C_Port *port )
+I2C_RC I2C_StopTransfer( I2C_Device *device )
 {
-	I2CStop( port->module ); 
+	I2CStop( device->module ); 
 	
-	while( !I2CBusIsIdle( port->module ) );
+	while( !I2CBusIsIdle( device->module ) );
 	
 	return I2C_RC_SUCCESS;
 }

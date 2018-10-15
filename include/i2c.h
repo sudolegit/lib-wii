@@ -67,13 +67,14 @@ typedef enum _I2C_MODE
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //!	@brief			Defines how this device will interact with an I2C port.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-typedef struct _I2C_Port
+typedef struct _I2C_Device
 {
 	I2C_CONFIGURATION		config;												//!< Configuration flags for port (e.g. stop in idle).
 	I2C_MODULE				module;												//!< I2C module as defined by core MCP library (I2C1, I2C2, ...).
 	uint32_t				clkFreq;											//!< Clock frequency to use when communicating with the bus (as a master).
 	I2C_MODE				mode;												//!< Mode for I2C device (master, slave, etc.).
-} I2C_Port;
+	uint8_t					addr;												//!< Byte identifier for device (e.g. 0x50).
+} I2C_Device;
 
 
 
@@ -81,7 +82,7 @@ typedef struct _I2C_Port
 //==================================================================================================
 // PUBLIC FUNCTION PROTOTYPES
 //--------------------------------------------------------------------------------------------------
-I2C_RC		I2C_InitPort(I2C_Port *port, uint32_t pbClk);
+I2C_RC		I2C_InitPort(I2C_Device *device, uint32_t pbClk);
 
 
 #endif	// __I2C__

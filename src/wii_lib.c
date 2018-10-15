@@ -18,7 +18,7 @@
 //==================================================================================================
 // GLOBAL VARIABLES
 //--------------------------------------------------------------------------------------------------
-static	I2C_Port	i2c_port;													// Instance of I2C port communication will occur over when talking with target. Defined within initialization function.
+static	I2C_Device	i2c_device;													// Instance of I2C port communication will occur over when talking with target. Defined within initialization function.
 
 
 
@@ -43,12 +43,13 @@ static	I2C_Port	i2c_port;													// Instance of I2C port communication will
 WII_LIB_RC WiiLib_Init(I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE target)
 {
 	// Prepare I2C port for communication as a master device.
-	i2c_port.config		= I2C_ENABLE_SLAVE_CLOCK_STRETCHING | I2C_STOP_IN_IDLE;
-	i2c_port.module		= module;
-	i2c_port.clkFreq	= I2C_CLOCK_RATE_STANDARD;
-	i2c_port.mode		= I2C_MODE_MASTER;
+	i2c_device.config		= I2C_ENABLE_SLAVE_CLOCK_STRETCHING | I2C_STOP_IN_IDLE;
+	i2c_device.module		= module;
+	i2c_device.clkFreq		= I2C_CLOCK_RATE_STANDARD;
+	i2c_device.mode			= I2C_MODE_MASTER;
+	i2c_device.addr			= WII_LIB_I2C_TARGET_ADDR;
 	
-	I2C_InitPort(&i2c_port, pbClk);
+	I2C_InitPort(&i2c_device, pbClk);
 	
 	// Push out initialization settings to target.
 	switch(target)
