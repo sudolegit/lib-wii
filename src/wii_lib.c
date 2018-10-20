@@ -48,6 +48,7 @@ WII_LIB_RC WiiLib_Init(I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE 
 	i2c_device.clkFreq		= I2C_CLOCK_RATE_STANDARD;
 	i2c_device.mode			= I2C_MODE_MASTER;
 	i2c_device.addr			= WII_LIB_I2C_TARGET_ADDR;
+	i2c_device.ackMode		= I2C_ACK_MODE_LOW;
 	
 	I2C_InitPort(&i2c_device, pbClk);
 	
@@ -59,10 +60,15 @@ WII_LIB_RC WiiLib_Init(I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE 
 			// TO DO:  Define and push initialization settings.
 			uint8_t		buff[8]	= {0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88};
 			uint32_t	len		= 8;
+			I2C_Receive( &i2c_device, &buff[0], len, FALSE);
+			I2C_Receive( &i2c_device, &buff[0], len, TRUE);
+			I2C_Transmit( &i2c_device, &buff[0], 1, FALSE);
+			/*/ 
 			I2C_Transmit( &i2c_device, &buff[0], 5, FALSE);
 			I2C_Transmit( &i2c_device, &buff[1], 1, FALSE);
 			I2C_Transmit( &i2c_device, &buff[0], len, FALSE);
 			I2C_Transmit( &i2c_device, &buff[2], 1, FALSE);
+			// */
 			break;
 		}
 		
