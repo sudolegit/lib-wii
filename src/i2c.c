@@ -19,8 +19,10 @@
 //==================================================================================================
 // PRIVATE FUNCTION PROTOTYPES
 //--------------------------------------------------------------------------------------------------
-I2C_RC		I2C_StartTransfer(I2C_Device *device, BOOL restart);
-I2C_RC		I2C_StopTransfer( I2C_Device *device );
+I2C_RC		I2C_StartTransfer(	I2C_Device *device,	BOOL restart	);
+I2C_RC		I2C_StopTransfer(	I2C_Device *device 					);
+I2C_RC		I2C_SendByte(		I2C_Device *device,	uint8_t data	);
+//I2C_RC		I2c_ReadByte(		I2C_Device *device,	uint8_t data	);
 
 
 
@@ -52,38 +54,42 @@ I2C_RC I2C_InitPort(I2C_Device *device, uint32_t pbClk)
 }
 
 
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//!	@brief			Transmit a single byte of data.
+//!	@brief			Transmit the identifier + requested data out over I2C.
 //!	
-//!	@details		Starts I2C transfer process and waits until bus ready to transmit. Once ready, 
-//!					sends out the provided byte of data and polls until tranmission is done. The 
-//!					I2C bus is brought to an inactive [free] state before returning a code 
-//!					indicating if message was acknowledged or not (fully ack'd message == success).
+//!	@details		Handles bus arbitration (start and stop) and prepends the address indicated 
+//!					within the provided 'device' structure's address field.
 //!	
 //!	@param[in]		*device				Instance of 'I2C_Device{}' struct.
-//!	@param[in]		data				Byte of data to transmit out over bus.
+//!	@param[in]		*data				Buffer of data to send out over bus.
+//!	@param[in]		len					Amount of data to transfer.
+//!	@param[in]		ackRequired			Flag indicating if an acknowledgement of message 
+//!										transmission is required.
 //!	
 //!	@returns		Return code corresponding to an entry in the 'I2C_RC' enum (zero == success; 
 //!					non-zero == error code). Please see enum definition for details.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-I2C_RC I2C_TransmitByte(I2C_Device *device, uint8_t data)
+I2C_RC I2C_Transmit( I2C_Device *device, uint8_t *data, uint32_t len, BOOL ackRequired	)
 {
+	I2C_RC			returnCode				= I2C_RC_SUCCESS;
+	uint32_t		index					= 0;
+	
 	while( I2C_StartTransfer(device, FALSE) != I2C_SUCCESS );
 	
-	while( !I2CTransmitterIsReady( device->module ) );
-	
-	if( I2CSendByte( device->module, data ) != I2C_SUCCESS )
-		return I2C_RC_SEND_BYTE_BUFFER_FAILED;
-	
-	while( !I2CTransmissionHasCompleted( device->module ) );
+	while( (returnCode == I2C_RC_SUCCESS) && (len > index) )
+	{
+		I2C_SendByte( device, data[index++] );
+		
+		if( ackRequired && !I2CByteWasAcknowledged(device->module) )
+			returnCode = I2C_RC_NO_ACK;
+		
+	}
 	
 	I2C_StopTransfer(device);
 	
-	if( !I2CByteWasAcknowledged( device->module ) )
-		return I2C_RC_NO_ACK;
-	
-	return I2C_RC_SUCCESS;
-	
+	return returnCode;
 }
 
 
@@ -153,3 +159,36 @@ I2C_RC I2C_StopTransfer( I2C_Device *device )
 	
 	return I2C_RC_SUCCESS;
 }
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//!	@brief			Send a single byte of data.
+//!	
+//!	@details		Waits until bus ready to transmit. Once the bus is ready, sends out the provided 
+//!					byte of data and polls until tranmission is done.
+//!	
+//!	@note			This function does NOT handle bus start / stop. It is up to the caller to manage 
+//!					the full bus arbitration proces.
+//!	
+//!	@param[in]		*device				Instance of 'I2C_Device{}' struct.
+//!	@param[in]		data				Byte of data to send out over bus.
+//!	
+//!	@returns		Return code corresponding to an entry in the 'I2C_RC' enum (zero == success; 
+//!					non-zero == error code). Please see enum definition for details.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+I2C_RC I2C_SendByte(I2C_Device *device, uint8_t data)
+{
+	while( !I2CTransmitterIsReady( device->module ) );
+	
+	if( I2CSendByte( device->module, data ) != I2C_SUCCESS )
+		return I2C_RC_SEND_BYTE_BUFFER_FAILED;
+	
+	while( !I2CTransmissionHasCompleted( device->module ) );
+	
+	if( !I2CByteWasAcknowledged( device->module ) )
+		return I2C_RC_NO_ACK;
+	
+	return I2C_RC_SUCCESS;
+	
+}
+

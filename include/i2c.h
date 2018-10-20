@@ -83,8 +83,8 @@ typedef struct _I2C_Device
 //==================================================================================================
 // PUBLIC FUNCTION PROTOTYPES
 //--------------------------------------------------------------------------------------------------
-I2C_RC		I2C_InitPort(I2C_Device *device, uint32_t pbClk);
-I2C_RC		I2C_TransmitByte(I2C_Device *device, uint8_t data);
-
+I2C_RC		I2C_InitPort(		I2C_Device *device,	uint32_t pbClk										);
+I2C_RC		I2C_Transmit(		I2C_Device *device,	uint8_t *data,	uint32_t len,	BOOL ackRequired	);
+//I2C_RC		I2C_Receive(		I2C_Device *device,	uint8_t *data,	uint32_t len,	BOOL ackMessages	);
 
 #endif	// __I2C__
