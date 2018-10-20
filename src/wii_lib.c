@@ -56,6 +56,8 @@ WII_LIB_RC WiiLib_Init(I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE 
 	{
 		case WII_LIB_TARGET_DEVICE_NUNCHUK:
 			// TO DO:  Define and push initialization settings.
+			I2C_TransmitByte(&i2c_device, 0x12);
+			I2C_TransmitByte(&i2c_device, 0xFE);
 			break;
 		
 		case WII_LIB_TARGET_DEVICE_CLASSIC_CONTROLLER:
@@ -68,3 +70,4 @@ WII_LIB_RC WiiLib_Init(I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE 
 	return WII_LIB_RC_SUCCESS;
 	
 }
+

@@ -31,8 +31,9 @@ typedef enum _I2C_RC
 {
 	I2C_RC_SUCCESS					= 0,										//!< Successfully completed task(s).
 	I2C_RC_START_FAILED				= 1,										//!< Failed to set start condition (as I2C master).
-	I2C_RC_RESTART_FAILED			= 2											//!< Failed to send restart message (as I2C master).
-
+	I2C_RC_RESTART_FAILED			= 2,										//!< Failed to send restart message (as I2C master).
+	I2C_RC_SEND_BYTE_BUFFER_FAILED	= 3,										//!< Failed to buffer a byte for transmission over I2C bus.
+	I2C_RC_NO_ACK					= 4											//!< Data transmitted over bus but no 1.
 } I2C_RC;
 
 
@@ -44,8 +45,8 @@ typedef enum _I2C_RC
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 typedef enum _I2C_CLOCK_RATE
 {
-	I2C_CLOCK_RATE_STANDARD				= 1000000,								//!< Standard clock rate used for (low speed) I2C communication over a I2C bus.
-	I2C_CLOCK_RATE_FAST					= 4000000								//!< Fastest [supported] clock rate used for I2C communication over a I2C bus.
+	I2C_CLOCK_RATE_STANDARD				= 100000,								//!< Standard clock rate used for (low speed) I2C communication over a I2C bus.
+	I2C_CLOCK_RATE_FAST					= 400000								//!< Fastest [supported] clock rate used for I2C communication over a I2C bus.
 } I2C_CLOCK_RATE;
 
 
@@ -83,6 +84,7 @@ typedef struct _I2C_Device
 // PUBLIC FUNCTION PROTOTYPES
 //--------------------------------------------------------------------------------------------------
 I2C_RC		I2C_InitPort(I2C_Device *device, uint32_t pbClk);
+I2C_RC		I2C_TransmitByte(I2C_Device *device, uint8_t data);
 
 
 #endif	// __I2C__
