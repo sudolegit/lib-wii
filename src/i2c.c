@@ -65,9 +65,13 @@ I2C_RC I2C_InitPort(I2C_Device *device, uint32_t pbClk)
 //!	@details		Handles bus arbitration (start and stop) and prepends the address indicated 
 //!					within the provided 'device' structure's address field.
 //!	
+//!	@note			The address for the I2C is defined in the 'device' parameter provided to the 
+//!					function and is transmitted prior to sending the provided 'len' of data (total 
+//!					data transmitted == 'len + 1').
+//!	
 //!	@param[in]		*device				Instance of 'I2C_Device{}' struct.
 //!	@param[in]		*data				Buffer of data to send out over bus.
-//!	@param[in]		len					Amount of data to transfer.
+//!	@param[in]		len					Amount of data to transfer [excluding address of target].
 //!	@param[in]		ackRequired			Flag indicating if an acknowledgement of message 
 //!										transmission is required.
 //!	
@@ -80,6 +84,8 @@ I2C_RC I2C_Transmit( I2C_Device *device, uint8_t *data, uint32_t len, BOOL ackRe
 	uint32_t		index					= 0;
 	
 	while( I2C_StartTransfer(device, FALSE) != I2C_SUCCESS );
+	
+	I2C_SendByte( device, device->addr );
 	
 	while( (returnCode == I2C_RC_SUCCESS) && (len > index) )
 	{
