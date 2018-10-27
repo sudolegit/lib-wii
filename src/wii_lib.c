@@ -42,8 +42,11 @@ static	I2C_Device	i2c_device;													// Instance of I2C port communication 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 WII_LIB_RC WiiLib_Init(I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE target)
 {
+	WII_LIB_RC		returnCode							= WII_LIB_RC_SUCCESS;
+	uint8_t			buff[WII_LIB_MAX_PAYLOAD_SIZE];
+	
 	// Prepare I2C port for communication as a master device.
-	i2c_device.config		= I2C_ENABLE_SLAVE_CLOCK_STRETCHING | I2C_STOP_IN_IDLE;	//worked with =0; exploring other options
+	i2c_device.config		= I2C_ENABLE_SLAVE_CLOCK_STRETCHING | I2C_STOP_IN_IDLE;
 	i2c_device.module		= module;
 	i2c_device.clkFreq		= I2C_CLOCK_RATE_STANDARD;
 	i2c_device.mode			= I2C_MODE_MASTER;
@@ -54,42 +57,104 @@ WII_LIB_RC WiiLib_Init(I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE 
 	I2C_InitPort(&i2c_device, pbClk);
 	
 	
-	/*/ 
-	I2C_StartTransfer(&i2c_device, FALSE);
-	
-	i2c_device.addrLength	= I2C_ADDR_LEN_7_BITS;
-	I2C_SendAddr( &i2c_device, FALSE );
-	I2C_SendAddr( &i2c_device, TRUE );
-	
-	i2c_device.addrLength	= I2C_ADDR_LEN_10_BITS;
-	I2C_SendAddr( &i2c_device, FALSE );
-	I2C_SendAddr( &i2c_device, TRUE );
-	
-	I2C_StopTransfer(&i2c_device);
-	// */
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	// Push out initialization settings to target.
 	switch(target)
 	{
-		case WII_LIB_TARGET_DEVICE_NUNCHUK:
-		{
-			uint8_t		buff[6]	= {0, 0, 0, 0, 0, 0};
-			uint32_t	x;
-			
+		case WII_LIB_TARGET_DEVICE_NUNCHUK_ENCRYPTED:
 			buff[0] = 0x40;
 			buff[1] = 0x00;
+			if( I2C_Transmit( &i2c_device, &buff[0], 2, TRUE ) != I2C_RC_SUCCESS )
+				returnCode = WII_LIB_RC_I2C_ERROR; 
+			break;
+		
+		case WII_LIB_TARGET_DEVICE_NUNCHUK_DECRYPTED:
+			buff[0] = 0xF0;
+			buff[1] = 0x55;
+			if( I2C_Transmit( &i2c_device, &buff[0], 2, TRUE ) == I2C_RC_SUCCESS )
+			{
+				uint32_t delay = 16666;while(--delay); // Roughly 10 ms delay
+				
+				buff[0] = 0xFB;
+				buff[1] = 0x00;
+				if( I2C_Transmit( &i2c_device, &buff[0], 2, TRUE ) != I2C_RC_SUCCESS )
+					returnCode = WII_LIB_RC_I2C_ERROR;
+			}
+			else
+			{
+				returnCode = WII_LIB_RC_I2C_ERROR;
+			}
+			break;
+		
+		case WII_LIB_TARGET_DEVICE_CLASSIC_CONTROLLER:
+		case WII_LIB_TARGET_DEVICE_CLASSIC_CONTROLLER_PRO:
+		default:
+			returnCode = WII_LIB_RC_UNSUPPORTED_DEVICE;
+			break;
+		
+	}
+	
+	return returnCode;
+	
+}
+
+/*
+			buff[0] = 0xF0;
+			buff[1] = 0x55;
 			I2C_Transmit( &i2c_device, &buff[0], 2, TRUE );
 			x = 100000;while(--x);
 			
-			// 
+			buff[0] = 0xFB;
+			buff[1] = 0x00;
+			I2C_Transmit( &i2c_device, &buff[0], 2, TRUE );
+			x = 100000;while(--x);
+// */
+
+			// */
+			
+			/*/ 
+			buff[0] = 0xFA;
+			I2C_TxRx( &i2c_device, &buff[0], 1, &buff[0], 6, TRUE );
+			// */
+			
+			/*/ 
+			
+			buff[0] = 0x00;
+			I2C_Transmit( &i2c_device, &buff[0], 1, TRUE );
+			x = 100000;while(--x);
+			
+			
+			I2C_Receive( &i2c_device, &buff[0], 6, TRUE );
+			x = 1000000;while(--x);
+			
+			buff[0] = 0x00;
+			I2C_Transmit( &i2c_device, &buff[0], 1, TRUE );
+			x = 100000;while(--x);
+			
+			
+			I2C_Receive( &i2c_device, &buff[0], 6, TRUE );
+			x = 1000000;while(--x);
+			// */
+			
+			/*/
+			x = 100000;while(--x);
+			x = 100000;while(--x);
+			x = 100000;while(--x);
+			x = 100000;while(--x);
+			x = 100000;while(--x);
+			x = 100000;while(--x);
+			
+			buff[0] = 0xFA;
+			I2C_Transmit( &i2c_device, &buff[0], 1, FALSE );
+			x = 100000;while(--x);
+			
+			
+			I2C_Receive( &i2c_device, &buff[0], 6, TRUE );
+			x = 100000;while(--x);
+			// */
+
+
+/*
+
 			{
 				buff[0] = 0x00;
 				I2C_Transmit( &i2c_device, &buff[0], 1, TRUE );
@@ -98,25 +163,29 @@ WII_LIB_RC WiiLib_Init(I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE 
 				I2C_Receive( &i2c_device, &buff[0], 6, TRUE );
 				x = 100000;while(--x);
 				
-			}
-			// */
-			
-			// 
-			buff[0] = 0x00;
-			I2C_TxRx( &i2c_device, &buff[0], 1, &buff[0], 6, TRUE );
-			// */
-			
-			break;
-		}
-		
-		case WII_LIB_TARGET_DEVICE_CLASSIC_CONTROLLER:
-		case WII_LIB_TARGET_DEVICE_CLASSIC_CONTROLLER_PRO:
-		default:
-			break;
-		
-	}
-	
-	return WII_LIB_RC_SUCCESS;
-	
-}
-
+				buff[0] = 0x40;
+				buff[1] = 0x00;
+				I2C_Transmit( &i2c_device, &buff[0], 2, TRUE );
+				x = 100000;while(--x);
+				
+				buff[0] = 0xFA;
+				I2C_Transmit( &i2c_device, &buff[0], 1, TRUE );
+				x = 100000;while(--x);
+				
+				
+				I2C_Receive( &i2c_device, &buff[0], 6, TRUE );
+				x = 100000;while(--x);
+				
+				buff[0] = 0x40;
+				buff[1] = 0x00;
+				I2C_Transmit( &i2c_device, &buff[0], 2, TRUE );
+				x = 100000;while(--x);
+				
+				buff[0] = 0x00;
+				I2C_Transmit( &i2c_device, &buff[0], 1, TRUE );
+				x = 100000;while(--x);
+				
+				I2C_Receive( &i2c_device, &buff[0], 6, TRUE );
+				x = 100000;while(--x);
+				
+*/
