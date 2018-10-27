@@ -89,6 +89,7 @@ WII_LIB_RC WiiLib_Init(I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE 
 			I2C_Transmit( &i2c_device, &buff[0], 2, TRUE );
 			x = 100000;while(--x);
 			
+			// 
 			{
 				buff[0] = 0x00;
 				I2C_Transmit( &i2c_device, &buff[0], 1, TRUE );
@@ -98,6 +99,13 @@ WII_LIB_RC WiiLib_Init(I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE 
 				x = 100000;while(--x);
 				
 			}
+			// */
+			
+			// 
+			buff[0] = 0x00;
+			I2C_TxRx( &i2c_device, &buff[0], 1, &buff[0], 6, TRUE );
+			// */
+			
 			break;
 		}
 		

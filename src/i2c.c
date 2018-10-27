@@ -111,6 +111,10 @@ I2C_RC I2C_Transmit( I2C_Device *device, uint8_t *data, uint32_t len, BOOL ackRe
 //!	
 //!	@warning		Presumes caller has appropriately allocated space for copying read data into.
 //!	
+//!	@note			The address for the I2C is defined in the 'device' parameter provided to the 
+//!					function and is transmitted prior to sending the provided 'len' of data (total 
+//!					data transmitted == 'len + 1').
+//!	
 //!	@param[in]		*device				Instance of 'I2C_Device{}' struct.
 //!	@param[in]		*data				Buffer of data to populate.
 //!	@param[in]		len					Amount of data to read (in bytes).
@@ -135,6 +139,73 @@ I2C_RC I2C_Receive( I2C_Device *device, uint8_t *data, uint32_t len, BOOL ackMes
 	}
 	
 	I2CReceiverEnable( device->module, FALSE );
+	
+	I2C_StopTransfer(device);
+	
+	return returnCode;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//!	@brief			Handle a combined write + read process over I2C to a target device.
+//!	
+//!	@details		Handles bus arbitration (start and stop) and prepends the address indicated 
+//!					within the provided 'device' structure's address field. Ensures data is ready to 
+//!					be read and supervise the process of invoking a byte-by-byte read of all 
+//!					necessary data.
+//!	
+//!	@warning		Presumes caller has appropriately allocated space for copying read data into.
+//!	
+//!	@note			The address for the I2C is defined in the 'device' parameter provided to the 
+//!					function and is transmitted prior to sending the provided 'len' of data (total 
+//!					data transmitted == 'len + 1').
+//!	
+//!	@param[in]		*device				Instance of 'I2C_Device{}' struct.
+//!	@param[in]		*dataTx				Buffer of data to send out over bus.
+//!	@param[in]		lenTx				Amount of data to transfer [excluding address of target].
+//!	@param[in]		*dataRx				Buffer of data to populate.
+//!	@param[in]		lenRx				Amount of data to read (in bytes).
+//!	@param[in]		ackRequired			Flag indicating if an acknowledgement of message should 
+//!										occur during tx and be expected during rx.
+//!	
+//!	@returns		Return code corresponding to an entry in the 'I2C_RC' enum (zero == success; 
+//!					non-zero == error code). Please see enum definition for details.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+I2C_RC I2C_TxRx( I2C_Device *device, uint8_t *dataTx, uint32_t lenTx, uint8_t *dataRx, uint32_t lenRx, BOOL ack )
+{
+	I2C_RC			returnCode				= I2C_RC_SUCCESS;
+	uint32_t		index					= 0;
+	
+	while( I2C_StartTransfer(device, FALSE) != I2C_SUCCESS );
+	
+	// Transmit provided data.
+	I2C_SendAddr( device, FALSE );
+	
+	while( (returnCode == I2C_RC_SUCCESS) && (lenTx > index) )
+	{
+		I2C_SendByte( device, dataTx[index++] );
+		
+		if( ack && !I2CByteWasAcknowledged(device->module) )
+			returnCode = I2C_RC_NO_ACK;
+		
+	}
+	
+	if( returnCode == I2C_RC_SUCCESS )
+	{	
+		// Restart transmission rather than stopping and starting it.
+		while( I2C_StartTransfer(device, TRUE) != I2C_SUCCESS );
+		
+		// Read in the requested number of data bytes.
+		I2C_SendAddr( device, TRUE );
+		
+		index = 0;
+		while( (returnCode == I2C_RC_SUCCESS) && (lenRx > index) )
+		{
+			returnCode = I2C_ReadByte( device, (dataRx + index++), ack );
+		}
+		
+		I2CReceiverEnable( device->module, FALSE );
+	}	
 	
 	I2C_StopTransfer(device);
 	
@@ -324,3 +395,4 @@ PRIVATE I2C_RC I2C_SendAddr( I2C_Device *device, BOOL isReadRequest)
 	return returnCode;
 	
 }
+
