@@ -65,8 +65,8 @@ typedef enum _I2C_MODE
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 typedef enum _I2C_ACK_MODE
 {
-	I2C_ACK_MODE_LOW					= 0,									//!< Acknowledge data received with a low-bit [0].
-	I2C_ACK_MODE_HIGH					= 1										//!< Acknowledge data received with a high-bit [1].
+	I2C_ACK_MODE_NACK					= 0,									//!< Acknowledge data received with a low-bit [0].
+	I2C_ACK_MODE_ACK					= 1										//!< Acknowledge data received with a high-bit [1].
 } I2C_ACK_MODE;
 
 
@@ -97,5 +97,10 @@ typedef struct _I2C_Device
 I2C_RC		I2C_InitPort(		I2C_Device *device,	uint32_t pbClk										);
 I2C_RC		I2C_Transmit(		I2C_Device *device,	uint8_t *data,	uint32_t len,	BOOL ackRequired	);
 I2C_RC		I2C_Receive(		I2C_Device *device,	uint8_t *data,	uint32_t len,	BOOL ackMessages	);
+
+I2C_RC		I2C_StartTransfer(	I2C_Device *device,	BOOL restart				);
+I2C_RC		I2C_StopTransfer(	I2C_Device *device 								);
+I2C_RC		I2C_SendByte(		I2C_Device *device,	uint8_t data				);
+I2C_RC		I2C_ReadByte(		I2C_Device *device,	uint8_t *data,	BOOL ack	);
 
 #endif	// __I2C__

@@ -43,12 +43,12 @@ static	I2C_Device	i2c_device;													// Instance of I2C port communication 
 WII_LIB_RC WiiLib_Init(I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE target)
 {
 	// Prepare I2C port for communication as a master device.
-	i2c_device.config		= I2C_ENABLE_SLAVE_CLOCK_STRETCHING | I2C_STOP_IN_IDLE;
+	i2c_device.config		= I2C_ENABLE_SLAVE_CLOCK_STRETCHING | I2C_STOP_IN_IDLE;	//worked with =0; exploring other options
 	i2c_device.module		= module;
 	i2c_device.clkFreq		= I2C_CLOCK_RATE_STANDARD;
 	i2c_device.mode			= I2C_MODE_MASTER;
 	i2c_device.addr			= WII_LIB_I2C_TARGET_ADDR;
-	i2c_device.ackMode		= I2C_ACK_MODE_LOW;
+	i2c_device.ackMode		= I2C_ACK_MODE_ACK;
 	
 	I2C_InitPort(&i2c_device, pbClk);
 	
@@ -57,20 +57,52 @@ WII_LIB_RC WiiLib_Init(I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE 
 	{
 		case WII_LIB_TARGET_DEVICE_NUNCHUK:
 		{
-			// TO DO:  Define and push initialization settings.
-			uint8_t		buff[8]	= {0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88};
+			uint8_t		buff[6]	= {0, 0, 0, 0, 0, 0};
 			uint32_t	len		= 8;
-			/*/ 
-			I2C_Receive( &i2c_device, &buff[0], len, FALSE);
-			I2C_Receive( &i2c_device, &buff[0], len, TRUE);
-			I2C_Transmit( &i2c_device, &buff[0], 1, FALSE);
-			// */
-			// 
-			I2C_Transmit( &i2c_device, &buff[0], 5, FALSE);
-			I2C_Transmit( &i2c_device, &buff[1], 1, FALSE);
-			I2C_Transmit( &i2c_device, &buff[0], len, FALSE);
-			I2C_Transmit( &i2c_device, &buff[2], 1, FALSE);
-			// */
+			uint32_t	x;
+			
+			// Initialize target device (encryption enabled)
+			I2C_StartTransfer(&i2c_device, FALSE);
+			I2C_SendByte(&i2c_device, ( 0x00 | (0x52 << 1) ));
+			I2C_SendByte(&i2c_device, 0x40);
+			I2C_SendByte(&i2c_device, 0x00);
+			I2C_StopTransfer(&i2c_device);
+			x = 1000;while(--x);
+			
+			{
+				// Push zero-byte to target device
+				I2C_StartTransfer(&i2c_device, FALSE);
+				I2C_SendByte(&i2c_device, ( 0x00 | (0x52 << 1) ));
+				I2C_SendByte(&i2c_device, 0x00);
+				I2C_StopTransfer(&i2c_device);
+				x = 1000;while(--x);
+				
+				// Read 6 status bytes one time.
+				I2C_StartTransfer(&i2c_device, FALSE);
+				I2C_SendByte(&i2c_device, ( 0x01 | (0x52 << 1) ));
+				
+				I2CReceiverEnable( i2c_device.module, TRUE );
+				I2C_ReadByte(&i2c_device, &buff[0], TRUE);
+				
+				I2CReceiverEnable( i2c_device.module, TRUE );
+				I2C_ReadByte(&i2c_device, &buff[1], TRUE);
+				
+				I2CReceiverEnable( i2c_device.module, TRUE );
+				I2C_ReadByte(&i2c_device, &buff[2], TRUE);
+				
+				I2CReceiverEnable( i2c_device.module, TRUE );
+				I2C_ReadByte(&i2c_device, &buff[3], TRUE);
+				
+				I2CReceiverEnable( i2c_device.module, TRUE );
+				I2C_ReadByte(&i2c_device, &buff[4], TRUE);
+				
+				I2CReceiverEnable( i2c_device.module, TRUE );
+				I2C_ReadByte(&i2c_device, &buff[5], TRUE);
+				
+				I2CReceiverEnable( i2c_device.module, FALSE );
+				I2C_StopTransfer(&i2c_device);
+				x = 100000;while(--x);
+			}
 			break;
 		}
 		

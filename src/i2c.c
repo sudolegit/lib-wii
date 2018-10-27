@@ -132,7 +132,7 @@ I2C_RC I2C_Receive( I2C_Device *device, uint8_t *data, uint32_t len, BOOL ackMes
 	while( (returnCode == I2C_RC_SUCCESS) && (len > index) )
 	{
 		returnCode = I2C_ReadByte( device, (data + index++), ackMessages );
-	}	
+	}
 	
 	I2CReceiverEnable( device->module, FALSE );
 	
@@ -246,14 +246,19 @@ I2C_RC I2C_SendByte(I2C_Device *device, uint8_t data)
 //!	@brief			Read a single byte of data and optionally send an acknowledgement signal.
 //!	
 //!	@details		Waits until recevied data is available and updates the provided data pointer 
-//!					with the value read. If the acknowledgement flag is set, attempts to ack and 
-//!					polls until ack is successful.
+//!					with the value read. If the acknowledgement flag is set, attempts to ack or nack
+//!					 and poll until ack or nack is successful.
 //!	
 //!	@note			This function does NOT handle bus start / stop. It is up to the caller to manage 
 //!					the full bus arbitration proces.
 //!	
 //!	@param[in]		*device				Instance of 'I2C_Device{}' struct.
 //!	@param[out]		*data				Where to save byte read in from bus.
+//!	@param[out]		ackByte				Boolean flag indicating if a ACK/NACK bit should be 
+//!										transmitted (acknowledging receipt of byte). This is a 
+//!										boolean flag indicating if the process of acknowledging will 
+//!										occur. The actual NACK or ACK value is defined in the 
+//!										provided 'device' instance.
 //!	
 //!	@returns		Return code corresponding to an entry in the 'I2C_RC' enum (zero == success; 
 //!					non-zero == error code). Please see enum definition for details.
