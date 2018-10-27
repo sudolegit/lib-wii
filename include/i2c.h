@@ -60,14 +60,25 @@ typedef enum _I2C_MODE
 	I2C_MODE_SLAVE						= 2										//!< I2C device is a slave controlling the communication.
 } I2C_MODE;
 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//!	@brief			1 methods used when receiving data from devices over I2C.
+//!	@brief			Acknowledgement methods used when receiving data from devices over I2C.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 typedef enum _I2C_ACK_MODE
 {
 	I2C_ACK_MODE_NACK					= 0,									//!< Acknowledge data received with a low-bit [0].
 	I2C_ACK_MODE_ACK					= 1										//!< Acknowledge data received with a high-bit [1].
 } I2C_ACK_MODE;
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//!	@brief			Number of bits (length) of address format for target device.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+typedef enum _I2C_ADDR_LEN
+{
+	I2C_ADDR_LEN_7_BITS					= 7,									//!< Target device address is 7-bits.
+	I2C_ADDR_LEN_10_BITS				= 10									//!< Target device address is 10-bits.
+} I2C_ADDR_LEN;
 
 
 
@@ -84,7 +95,8 @@ typedef struct _I2C_Device
 	I2C_MODULE				module;												//!< I2C module as defined by core MCP library (I2C1, I2C2, ...).
 	uint32_t				clkFreq;											//!< Clock frequency to use when communicating with the bus (as a master).
 	I2C_MODE				mode;												//!< Mode for I2C device (master, slave, etc.).
-	uint8_t					addr;												//!< Byte identifier for device (e.g. 0x50).
+	uint16_t				addr;												//!< Byte identifier for device (e.g. 0x50).
+	I2C_ADDR_LEN			addrLength;											//!< Length of I2C address format (e.g. 7-bits).
 	I2C_ACK_MODE			ackMode;											//!< Mode to use when acknowledging received data (high vs low ack).
 } I2C_Device;
 
@@ -97,10 +109,5 @@ typedef struct _I2C_Device
 I2C_RC		I2C_InitPort(		I2C_Device *device,	uint32_t pbClk										);
 I2C_RC		I2C_Transmit(		I2C_Device *device,	uint8_t *data,	uint32_t len,	BOOL ackRequired	);
 I2C_RC		I2C_Receive(		I2C_Device *device,	uint8_t *data,	uint32_t len,	BOOL ackMessages	);
-
-I2C_RC		I2C_StartTransfer(	I2C_Device *device,	BOOL restart				);
-I2C_RC		I2C_StopTransfer(	I2C_Device *device 								);
-I2C_RC		I2C_SendByte(		I2C_Device *device,	uint8_t data				);
-I2C_RC		I2C_ReadByte(		I2C_Device *device,	uint8_t *data,	BOOL ack	);
 
 #endif	// __I2C__

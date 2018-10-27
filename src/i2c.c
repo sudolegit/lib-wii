@@ -24,10 +24,11 @@
 //==================================================================================================
 // PRIVATE FUNCTION PROTOTYPES
 //--------------------------------------------------------------------------------------------------
-I2C_RC		I2C_StartTransfer(	I2C_Device *device,	BOOL restart				);
-I2C_RC		I2C_StopTransfer(	I2C_Device *device 								);
-I2C_RC		I2C_SendByte(		I2C_Device *device,	uint8_t data				);
-I2C_RC		I2C_ReadByte(		I2C_Device *device,	uint8_t *data,	BOOL ack	);
+PRIVATE I2C_RC		I2C_StartTransfer(	I2C_Device *device,	BOOL restart					);
+PRIVATE I2C_RC		I2C_StopTransfer(	I2C_Device *device 									);
+PRIVATE I2C_RC		I2C_SendByte(		I2C_Device *device,	uint8_t data					);
+PRIVATE I2C_RC		I2C_ReadByte(		I2C_Device *device,	uint8_t *data,	BOOL ackByte	);
+PRIVATE I2C_RC		I2C_SendAddr(		I2C_Device *device,	BOOL isReadRequest				);
 
 
 
@@ -85,7 +86,7 @@ I2C_RC I2C_Transmit( I2C_Device *device, uint8_t *data, uint32_t len, BOOL ackRe
 	
 	while( I2C_StartTransfer(device, FALSE) != I2C_SUCCESS );
 	
-	I2C_SendByte( device, device->addr );
+	I2C_SendAddr( device, FALSE );
 	
 	while( (returnCode == I2C_RC_SUCCESS) && (len > index) )
 	{
@@ -126,8 +127,7 @@ I2C_RC I2C_Receive( I2C_Device *device, uint8_t *data, uint32_t len, BOOL ackMes
 	
 	while( I2C_StartTransfer(device, FALSE) != I2C_SUCCESS );
 	
-	if( I2CReceiverEnable( device->module, TRUE ) != I2C_SUCCESS )
-		return I2C_RC_RECEIVE_OVERFLOW;
+	I2C_SendAddr( device, TRUE );
 	
 	while( (returnCode == I2C_RC_SUCCESS) && (len > index) )
 	{
@@ -165,7 +165,7 @@ I2C_RC I2C_Receive( I2C_Device *device, uint8_t *data, uint32_t len, BOOL ackMes
 //!	@returns		Return code corresponding to an entry in the 'I2C_RC' enum (zero == success; 
 //!					non-zero == error code). Please see enum definition for details.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-I2C_RC I2C_StartTransfer(I2C_Device *device, BOOL restart)
+PRIVATE I2C_RC I2C_StartTransfer(I2C_Device *device, BOOL restart)
 {
 	if( restart )
 	{
@@ -200,7 +200,7 @@ I2C_RC I2C_StartTransfer(I2C_Device *device, BOOL restart)
 //!	@returns		Return code corresponding to an entry in the 'I2C_RC' enum (zero == success; 
 //!					non-zero == error code). Please see enum definition for details.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-I2C_RC I2C_StopTransfer( I2C_Device *device )
+PRIVATE I2C_RC I2C_StopTransfer( I2C_Device *device )
 {
 	I2CStop( device->module ); 
 	
@@ -225,7 +225,7 @@ I2C_RC I2C_StopTransfer( I2C_Device *device )
 //!	@returns		Return code corresponding to an entry in the 'I2C_RC' enum (zero == success; 
 //!					non-zero == error code). Please see enum definition for details.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-I2C_RC I2C_SendByte(I2C_Device *device, uint8_t data)
+PRIVATE I2C_RC I2C_SendByte(I2C_Device *device, uint8_t data)
 {
 	while( !I2CTransmitterIsReady( device->module ) );
 	
@@ -263,19 +263,64 @@ I2C_RC I2C_SendByte(I2C_Device *device, uint8_t data)
 //!	@returns		Return code corresponding to an entry in the 'I2C_RC' enum (zero == success; 
 //!					non-zero == error code). Please see enum definition for details.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-I2C_RC I2C_ReadByte( I2C_Device *device, uint8_t *data, BOOL ack )
+PRIVATE I2C_RC I2C_ReadByte( I2C_Device *device, uint8_t *data, BOOL ackByte )
 {
+	if( I2CReceiverEnable( device->module, TRUE ) != I2C_SUCCESS )
+		return I2C_RC_RECEIVE_OVERFLOW;
+	
 	while( !I2CReceivedDataIsAvailable(device->module) );
 	
-	if( ack )
+	if( ackByte )
 		I2CAcknowledgeByte( device->module, (BOOL)device->ackMode );
 	
 	*data = I2CGetByte( device->module );
 	
-	if( ack )
+	if( ackByte )
 		while (!I2CAcknowledgeHasCompleted( device->module ));
 	
 	return I2C_RC_SUCCESS;
 	
 }
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//!	@brief			Transmits the address to a target with the appropriate read/write bit set.
+//!	
+//!	@details		Serves as a wrapper to the private 'I2C_SendByte' method with the address 
+//!					formatted using the Microchip plib library methods.
+//!	
+//!	@note			This function does NOT handle bus start / stop. It is up to the caller to manage 
+//!					the full bus arbitration proces.
+//!	
+//!	@note			Supports only the address sizes defined in the 'I2C_ADDR_LEN{}' enum.
+//!	
+//!	@param[in]		*device				Instance of 'I2C_Device{}' struct.
+//!	@param[in]		isReadRequest		Flag indicating if the R/W bit in the address should match 
+//!										'I2C_READ' or 'I2C_WRITE'. A TRUE value == use 'I2C_READ'.
+//!	
+//!	@returns		Return code corresponding to an entry in the 'I2C_RC' enum (zero == success; 
+//!					non-zero == error code). Please see enum definition for details.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+PRIVATE I2C_RC I2C_SendAddr( I2C_Device *device, BOOL isReadRequest)
+{
+	I2C_RC			returnCode				= I2C_RC_SUCCESS;
+	BOOL			rwFlag					= (isReadRequest) ? I2C_READ : I2C_WRITE;
+	
+	if( device->addrLength == I2C_ADDR_LEN_7_BITS )
+	{
+		I2C_7_BIT_ADDRESS				addr;
+		I2C_FORMAT_7_BIT_ADDRESS(		addr,	device->addr,	rwFlag	);
+		returnCode = I2C_SendByte(		device,	addr.byte				);
+	}
+	else if( device->addrLength == I2C_ADDR_LEN_10_BITS )
+	{
+		I2C_10_BIT_ADDRESS				addr;
+		I2C_FORMAT_10_BIT_ADDRESS(		addr,	device->addr,	rwFlag	);
+		returnCode		= I2C_SendByte(	device,	addr.first_byte			);
+		if(returnCode != I2C_RC_SEND_BYTE_BUFFER_FAILED)
+			returnCode	= I2C_SendByte(	device,	addr.second_byte		);
+	}
+	
+	return returnCode;
+	
+}

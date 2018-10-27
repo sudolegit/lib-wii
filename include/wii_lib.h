@@ -41,7 +41,7 @@ typedef enum _WII_LIB_TARGET_DEVICE
 } WII_LIB_TARGET_DEVICE;
 
 
-#define	WII_LIB_I2C_TARGET_ADDR				0x50								//!< Address of target device on I2C bus. All Wii targets supported by library presently use the same (fixed) address.
+#define	WII_LIB_I2C_TARGET_ADDR				0x52								//!< Address of target device on I2C bus. All Wii targets supported by library presently use the same (fixed) address.
 
 
 

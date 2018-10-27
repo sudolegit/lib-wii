@@ -48,9 +48,33 @@ WII_LIB_RC WiiLib_Init(I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE 
 	i2c_device.clkFreq		= I2C_CLOCK_RATE_STANDARD;
 	i2c_device.mode			= I2C_MODE_MASTER;
 	i2c_device.addr			= WII_LIB_I2C_TARGET_ADDR;
+	i2c_device.addrLength	= I2C_ADDR_LEN_7_BITS;
 	i2c_device.ackMode		= I2C_ACK_MODE_ACK;
 	
 	I2C_InitPort(&i2c_device, pbClk);
+	
+	
+	/*/ 
+	I2C_StartTransfer(&i2c_device, FALSE);
+	
+	i2c_device.addrLength	= I2C_ADDR_LEN_7_BITS;
+	I2C_SendAddr( &i2c_device, FALSE );
+	I2C_SendAddr( &i2c_device, TRUE );
+	
+	i2c_device.addrLength	= I2C_ADDR_LEN_10_BITS;
+	I2C_SendAddr( &i2c_device, FALSE );
+	I2C_SendAddr( &i2c_device, TRUE );
+	
+	I2C_StopTransfer(&i2c_device);
+	// */
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	// Push out initialization settings to target.
 	switch(target)
@@ -58,50 +82,21 @@ WII_LIB_RC WiiLib_Init(I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE 
 		case WII_LIB_TARGET_DEVICE_NUNCHUK:
 		{
 			uint8_t		buff[6]	= {0, 0, 0, 0, 0, 0};
-			uint32_t	len		= 8;
 			uint32_t	x;
 			
-			// Initialize target device (encryption enabled)
-			I2C_StartTransfer(&i2c_device, FALSE);
-			I2C_SendByte(&i2c_device, ( 0x00 | (0x52 << 1) ));
-			I2C_SendByte(&i2c_device, 0x40);
-			I2C_SendByte(&i2c_device, 0x00);
-			I2C_StopTransfer(&i2c_device);
-			x = 1000;while(--x);
+			buff[0] = 0x40;
+			buff[1] = 0x00;
+			I2C_Transmit( &i2c_device, &buff[0], 2, TRUE );
+			x = 100000;while(--x);
 			
 			{
-				// Push zero-byte to target device
-				I2C_StartTransfer(&i2c_device, FALSE);
-				I2C_SendByte(&i2c_device, ( 0x00 | (0x52 << 1) ));
-				I2C_SendByte(&i2c_device, 0x00);
-				I2C_StopTransfer(&i2c_device);
-				x = 1000;while(--x);
-				
-				// Read 6 status bytes one time.
-				I2C_StartTransfer(&i2c_device, FALSE);
-				I2C_SendByte(&i2c_device, ( 0x01 | (0x52 << 1) ));
-				
-				I2CReceiverEnable( i2c_device.module, TRUE );
-				I2C_ReadByte(&i2c_device, &buff[0], TRUE);
-				
-				I2CReceiverEnable( i2c_device.module, TRUE );
-				I2C_ReadByte(&i2c_device, &buff[1], TRUE);
-				
-				I2CReceiverEnable( i2c_device.module, TRUE );
-				I2C_ReadByte(&i2c_device, &buff[2], TRUE);
-				
-				I2CReceiverEnable( i2c_device.module, TRUE );
-				I2C_ReadByte(&i2c_device, &buff[3], TRUE);
-				
-				I2CReceiverEnable( i2c_device.module, TRUE );
-				I2C_ReadByte(&i2c_device, &buff[4], TRUE);
-				
-				I2CReceiverEnable( i2c_device.module, TRUE );
-				I2C_ReadByte(&i2c_device, &buff[5], TRUE);
-				
-				I2CReceiverEnable( i2c_device.module, FALSE );
-				I2C_StopTransfer(&i2c_device);
+				buff[0] = 0x00;
+				I2C_Transmit( &i2c_device, &buff[0], 1, TRUE );
 				x = 100000;while(--x);
+				
+				I2C_Receive( &i2c_device, &buff[0], 6, TRUE );
+				x = 100000;while(--x);
+				
 			}
 			break;
 		}
