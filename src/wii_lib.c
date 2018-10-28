@@ -189,22 +189,22 @@ static WII_LIB_TARGET_DEVICE WiiLib_DetermineDeviceType( WiiLib_Device *device )
 			{
 				uint8_t	tmp[WII_LIB_ID_LENGTH] = WII_LIB_ID_CLASSIC_CONTROLLER;
 				if( !memcmp( &tmp[0], &device->dataCurrent[0], WII_LIB_ID_LENGTH ) )
-					return WII_LIB_TARGET_DEVICE_NUNCHUCK;
+					return WII_LIB_TARGET_DEVICE_CLASSIC_CONTROLLER;
 			}
 			{
 				uint8_t	tmp[WII_LIB_ID_LENGTH] = WII_LIB_ID_WII_MOTION_PLUS;
 				if( !memcmp( &tmp[0], &device->dataCurrent[0], WII_LIB_ID_LENGTH ) )
-					return WII_LIB_TARGET_DEVICE_NUNCHUCK;
+					return WII_LIB_TARGET_DEVICE_MOTION_PLUS;
 			}
 			{
 				uint8_t	tmp[WII_LIB_ID_LENGTH] = WII_LIB_ID_WII_MOTION_PLUS_PASS_NUNCHUCK;
 				if( !memcmp( &tmp[0], &device->dataCurrent[0], WII_LIB_ID_LENGTH ) )
-					return WII_LIB_TARGET_DEVICE_NUNCHUCK;
+					return WII_LIB_TARGET_DEVICE_MOTION_PLUS_PASS_NUNCHUCK;
 			}
 			{
 				uint8_t	tmp[WII_LIB_ID_LENGTH] = WII_LIB_ID_WII_MOTION_PLUS_PASS_CLASSIC;
 				if( !memcmp( &tmp[0], &device->dataCurrent[0], WII_LIB_ID_LENGTH ) )
-					return WII_LIB_TARGET_DEVICE_NUNCHUCK;
+					return WII_LIB_TARGET_DEVICE_MOTION_PLUS_PASS_CLASSIC;
 			}
 			
 			return WII_LIB_TARGET_DEVICE_UNSUPPORTED;
