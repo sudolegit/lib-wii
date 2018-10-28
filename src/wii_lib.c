@@ -46,15 +46,15 @@ WII_LIB_RC WiiLib_Init(I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE 
 	uint8_t			buff[WII_LIB_MAX_PAYLOAD_SIZE];
 	
 	// Prepare I2C port for communication as a master device.
-	i2c_device.config		= I2C_ENABLE_SLAVE_CLOCK_STRETCHING | I2C_STOP_IN_IDLE;
-	i2c_device.module		= module;
-	i2c_device.clkFreq		= I2C_CLOCK_RATE_STANDARD;
+	i2c_device.port.config	= I2C_ENABLE_SLAVE_CLOCK_STRETCHING | I2C_STOP_IN_IDLE;
+	i2c_device.port.module	= module;
+	i2c_device.port.clkFreq	= I2C_CLOCK_RATE_STANDARD;
+	i2c_device.port.ackMode	= I2C_ACK_MODE_ACK;
 	i2c_device.mode			= I2C_MODE_MASTER;
 	i2c_device.addr			= WII_LIB_I2C_TARGET_ADDR;
 	i2c_device.addrLength	= I2C_ADDR_LEN_7_BITS;
-	i2c_device.ackMode		= I2C_ACK_MODE_ACK;
 	
-	I2C_InitPort(&i2c_device, pbClk);
+	I2C_InitPort(&i2c_device.port, pbClk);
 	
 	
 	// Push out initialization settings to target.
@@ -65,6 +65,32 @@ WII_LIB_RC WiiLib_Init(I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE 
 			buff[1] = 0x00;
 			if( I2C_Transmit( &i2c_device, &buff[0], 2, TRUE ) != I2C_RC_SUCCESS )
 				returnCode = WII_LIB_RC_I2C_ERROR; 
+			
+			{	// Quick hack to confirm able to query data with changes to I2C structs.
+				uint32_t x;
+				
+				x = 100000;while(--x);
+				
+				buff[0] = 0x00;
+				I2C_Transmit( &i2c_device, &buff[0], 1, TRUE );
+				x = 100000;while(--x);
+				
+				I2C_Receive( &i2c_device, &buff[0], 6, TRUE );
+				x = 100000;while(--x);
+				
+				buff[0] = 0x40;
+				buff[1] = 0x00;
+				I2C_Transmit( &i2c_device, &buff[0], 2, TRUE );
+				x = 100000;while(--x);
+				
+				buff[0] = 0x00;
+				I2C_Transmit( &i2c_device, &buff[0], 1, TRUE );
+				x = 100000;while(--x);
+				
+				I2C_Receive( &i2c_device, &buff[0], 6, TRUE );
+				x = 100000;while(--x);
+			}
+			
 			break;
 		
 		case WII_LIB_TARGET_DEVICE_NUNCHUK_DECRYPTED:

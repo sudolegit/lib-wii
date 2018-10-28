@@ -87,17 +87,28 @@ typedef enum _I2C_ADDR_LEN
 // TYPEDEFS
 //--------------------------------------------------------------------------------------------------
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//!	@brief			Defines how this device will interact with an I2C port.
+//!	@brief			Tracks I2C port settings (e.g. which module and clock speed for communication).
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-typedef struct _I2C_Device
+typedef struct _I2C_Port
 {
 	I2C_CONFIGURATION		config;												//!< Configuration flags for port (e.g. stop in idle).
 	I2C_MODULE				module;												//!< I2C module as defined by core MCP library (I2C1, I2C2, ...).
 	uint32_t				clkFreq;											//!< Clock frequency to use when communicating with the bus (as a master).
-	I2C_MODE				mode;												//!< Mode for I2C device (master, slave, etc.).
-	uint16_t				addr;												//!< Byte identifier for device (e.g. 0x50).
-	I2C_ADDR_LEN			addrLength;											//!< Length of I2C address format (e.g. 7-bits).
 	I2C_ACK_MODE			ackMode;											//!< Mode to use when acknowledging received data (high vs low ack).
+} I2C_Port;
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//!	@brief			Tracks the device-specific I2C information.
+//!	
+//!	@note			Also encapsulates the 'I2C_Port{}' information for easier tracking.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+typedef struct _I2C_Device
+{
+	I2C_Port				port;												//!< Structure tracking I2C port specific details.
+	I2C_MODE				mode;												//!< Mode for I2C device (master, slave, etc.).
+	uint16_t				addr;												//!< Identifier for device (e.g. 0x50).
+	I2C_ADDR_LEN			addrLength;											//!< Length of I2C address format (e.g. 7-bits).
 } I2C_Device;
 
 
@@ -106,7 +117,7 @@ typedef struct _I2C_Device
 //==================================================================================================
 // PUBLIC FUNCTION PROTOTYPES
 //--------------------------------------------------------------------------------------------------
-I2C_RC		I2C_InitPort(		I2C_Device *device,	uint32_t pbClk																		);
+I2C_RC		I2C_InitPort(		I2C_Port *port,		uint32_t pbClk																		);
 I2C_RC		I2C_Transmit(		I2C_Device *device,	uint8_t *data,		uint32_t len,	BOOL ackRequired								);
 I2C_RC		I2C_Receive(		I2C_Device *device,	uint8_t *data,		uint32_t len,	BOOL ackMessages								);
 I2C_RC		I2C_TxRx(			I2C_Device *device,	uint8_t *dataTx,	uint32_t lenTx,	uint8_t *dataRx,	uint32_t lenRx,	BOOL ack	);

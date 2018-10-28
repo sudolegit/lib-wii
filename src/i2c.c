@@ -24,10 +24,10 @@
 //==================================================================================================
 // PRIVATE FUNCTION PROTOTYPES
 //--------------------------------------------------------------------------------------------------
-PRIVATE I2C_RC		I2C_StartTransfer(	I2C_Device *device,	BOOL restart					);
-PRIVATE I2C_RC		I2C_StopTransfer(	I2C_Device *device 									);
-PRIVATE I2C_RC		I2C_SendByte(		I2C_Device *device,	uint8_t data					);
-PRIVATE I2C_RC		I2C_ReadByte(		I2C_Device *device,	uint8_t *data,	BOOL ackByte	);
+PRIVATE I2C_RC		I2C_StartTransfer(	I2C_Port *port,		BOOL restart					);
+PRIVATE I2C_RC		I2C_StopTransfer(	I2C_Port *port 										);
+PRIVATE I2C_RC		I2C_SendByte(		I2C_Port *port,		uint8_t data					);
+PRIVATE I2C_RC		I2C_ReadByte(		I2C_Port *port,		uint8_t *data,	BOOL ackByte	);
 PRIVATE I2C_RC		I2C_SendAddr(		I2C_Device *device,	BOOL isReadRequest				);
 
 
@@ -39,7 +39,7 @@ PRIVATE I2C_RC		I2C_SendAddr(		I2C_Device *device,	BOOL isReadRequest				);
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //!	@brief			Initializes the target I2C port.
 //!	
-//!	@param[in]		*device				Instance of 'I2C_Device{}' struct. Values used to define 
+//!	@param[in]		*port				Instance of 'I2C_Port{}' struct. Values used to define 
 //!										target to initialize and how it should be initialized.
 //!	@param[in]		pbClk				Current peripheral bus clock for device (referenced during 
 //!										I2C initialization).
@@ -47,14 +47,14 @@ PRIVATE I2C_RC		I2C_SendAddr(		I2C_Device *device,	BOOL isReadRequest				);
 //!	@returns		Return code corresponding to an entry in the 'I2C_RC' enum (zero == success; 
 //!					non-zero == error code). Please see enum definition for details.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-I2C_RC I2C_InitPort(I2C_Device *device, uint32_t pbClk)
+I2C_RC I2C_InitPort(I2C_Port *port, uint32_t pbClk)
 {
-	I2CEnable(device->module, FALSE);
+	I2CEnable(port->module, FALSE);
 	
-	I2CConfigure(device->module, device->config);
-	I2CSetFrequency(device->module, pbClk, device->clkFreq);
+	I2CConfigure(port->module, port->config);
+	I2CSetFrequency(port->module, pbClk, port->clkFreq);
 	
-	I2CEnable(device->module, TRUE);
+	I2CEnable(port->module, TRUE);
 	
 	return I2C_RC_SUCCESS;
 }
@@ -84,20 +84,20 @@ I2C_RC I2C_Transmit( I2C_Device *device, uint8_t *data, uint32_t len, BOOL ackRe
 	I2C_RC			returnCode				= I2C_RC_SUCCESS;
 	uint32_t		index					= 0;
 	
-	while( I2C_StartTransfer(device, FALSE) != I2C_SUCCESS );
+	while( I2C_StartTransfer(&device->port, FALSE) != I2C_SUCCESS );
 	
 	I2C_SendAddr( device, FALSE );
 	
 	while( (returnCode == I2C_RC_SUCCESS) && (len > index) )
 	{
-		I2C_SendByte( device, data[index++] );
+		I2C_SendByte( &device->port, data[index++] );
 		
-		if( ackRequired && !I2CByteWasAcknowledged(device->module) )
+		if( ackRequired && !I2CByteWasAcknowledged(device->port.module) )
 			returnCode = I2C_RC_NO_ACK;
 		
 	}
 	
-	I2C_StopTransfer(device);
+	I2C_StopTransfer(&device->port);
 	
 	return returnCode;
 }
@@ -129,18 +129,18 @@ I2C_RC I2C_Receive( I2C_Device *device, uint8_t *data, uint32_t len, BOOL ackMes
 	I2C_RC			returnCode				= I2C_RC_SUCCESS;
 	uint32_t		index					= 0;
 	
-	while( I2C_StartTransfer(device, FALSE) != I2C_SUCCESS );
+	while( I2C_StartTransfer(&device->port, FALSE) != I2C_SUCCESS );
 	
 	I2C_SendAddr( device, TRUE );
 	
 	while( (returnCode == I2C_RC_SUCCESS) && (len > index) )
 	{
-		returnCode = I2C_ReadByte( device, (data + index++), ackMessages );
+		returnCode = I2C_ReadByte( &device->port, (data + index++), ackMessages );
 	}
 	
-	I2CReceiverEnable( device->module, FALSE );
+	I2CReceiverEnable( device->port.module, FALSE );
 	
-	I2C_StopTransfer(device);
+	I2C_StopTransfer(&device->port);
 	
 	return returnCode;
 }
@@ -176,16 +176,16 @@ I2C_RC I2C_TxRx( I2C_Device *device, uint8_t *dataTx, uint32_t lenTx, uint8_t *d
 	I2C_RC			returnCode				= I2C_RC_SUCCESS;
 	uint32_t		index					= 0;
 	
-	while( I2C_StartTransfer(device, FALSE) != I2C_SUCCESS );
+	while( I2C_StartTransfer(&device->port, FALSE) != I2C_SUCCESS );
 	
 	// Transmit provided data.
 	I2C_SendAddr( device, FALSE );
 	
 	while( (returnCode == I2C_RC_SUCCESS) && (lenTx > index) )
 	{
-		I2C_SendByte( device, dataTx[index++] );
+		I2C_SendByte( &device->port, dataTx[index++] );
 		
-		if( ack && !I2CByteWasAcknowledged(device->module) )
+		if( ack && !I2CByteWasAcknowledged(device->port.module) )
 			returnCode = I2C_RC_NO_ACK;
 		
 	}
@@ -193,7 +193,7 @@ I2C_RC I2C_TxRx( I2C_Device *device, uint8_t *dataTx, uint32_t lenTx, uint8_t *d
 	if( returnCode == I2C_RC_SUCCESS )
 	{	
 		// Restart transmission rather than stopping and starting it.
-		while( I2C_StartTransfer(device, TRUE) != I2C_SUCCESS );
+		while( I2C_StartTransfer(&device->port, TRUE) != I2C_SUCCESS );
 		uint32_t delay = 16666;while(--delay); // Roughly 10 ms delay
 		
 		// Read in the requested number of data bytes.
@@ -202,13 +202,13 @@ I2C_RC I2C_TxRx( I2C_Device *device, uint8_t *dataTx, uint32_t lenTx, uint8_t *d
 		index = 0;
 		while( (returnCode == I2C_RC_SUCCESS) && (lenRx > index) )
 		{
-			returnCode = I2C_ReadByte( device, (dataRx + index++), ack );
+			returnCode = I2C_ReadByte( &device->port, (dataRx + index++), ack );
 		}
 		
-		I2CReceiverEnable( device->module, FALSE );
+		I2CReceiverEnable( device->port.module, FALSE );
 	}	
 	
-	I2C_StopTransfer(device);
+	I2C_StopTransfer(&device->port);
 	
 	return returnCode;
 }
@@ -231,28 +231,28 @@ I2C_RC I2C_TxRx( I2C_Device *device, uint8_t *dataTx, uint32_t lenTx, uint8_t *d
 //!	@note			A "restart" condition is sending a start message while a data payload is already 
 //!					actively in transfer. 
 //!	
-//!	@param[in]		*device				Instance of 'I2C_Device{}' struct.
+//!	@param[in]		*port				Instance of 'I2C_Port{}' struct.
 //!	@param[in]		restart				Flag indicating if a 'restart' message should be sent.
 //!	
 //!	@returns		Return code corresponding to an entry in the 'I2C_RC' enum (zero == success; 
 //!					non-zero == error code). Please see enum definition for details.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-PRIVATE I2C_RC I2C_StartTransfer(I2C_Device *device, BOOL restart)
+PRIVATE I2C_RC I2C_StartTransfer( I2C_Port *port, BOOL restart )
 {
 	if( restart )
 	{
-		if( I2CRepeatStart( device->module ) != I2C_SUCCESS )
+		if( I2CRepeatStart( port->module ) != I2C_SUCCESS )
 			return I2C_RC_RESTART_FAILED;
 	} else
 	{
-		while( !I2CBusIsIdle( device->module ) );
+		while( !I2CBusIsIdle( port->module ) );
 		
-		if( I2CStart( device->module ) != I2C_SUCCESS )
+		if( I2CStart( port->module ) != I2C_SUCCESS )
 			return I2C_RC_START_FAILED;
 		
 	}
 	
-	while( !(I2CGetStatus(device->module) & I2C_START) );
+	while( !(I2CGetStatus(port->module) & I2C_START) );
 	
 	return I2C_RC_SUCCESS;
 	
@@ -267,16 +267,16 @@ PRIVATE I2C_RC I2C_StartTransfer(I2C_Device *device, BOOL restart)
 //!	
 //!	@warning		This is a blocking function. It will not return until the bus is idle.
 //!	
-//!	@param[in]		*device				Instance of 'I2C_Device{}' struct.
+//!	@param[in]		*port				Instance of 'I2C_Port{}' struct.
 //!	
 //!	@returns		Return code corresponding to an entry in the 'I2C_RC' enum (zero == success; 
 //!					non-zero == error code). Please see enum definition for details.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-PRIVATE I2C_RC I2C_StopTransfer( I2C_Device *device )
+PRIVATE I2C_RC I2C_StopTransfer( I2C_Port *port )
 {
-	I2CStop( device->module ); 
+	I2CStop( port->module ); 
 	
-	while( !(I2CGetStatus(device->module) & I2C_STOP) );
+	while( !(I2CGetStatus(port->module) & I2C_STOP) );
 	
 	return I2C_RC_SUCCESS;
 }
@@ -291,22 +291,22 @@ PRIVATE I2C_RC I2C_StopTransfer( I2C_Device *device )
 //!	@note			This function does NOT handle bus start / stop. It is up to the caller to manage 
 //!					the full bus arbitration proces.
 //!	
-//!	@param[in]		*device				Instance of 'I2C_Device{}' struct.
+//!	@param[in]		*port				Instance of 'I2C_Port{}' struct.
 //!	@param[in]		data				Byte of data to send out over bus.
 //!	
 //!	@returns		Return code corresponding to an entry in the 'I2C_RC' enum (zero == success; 
 //!					non-zero == error code). Please see enum definition for details.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-PRIVATE I2C_RC I2C_SendByte(I2C_Device *device, uint8_t data)
+PRIVATE I2C_RC I2C_SendByte( I2C_Port *port, uint8_t data )
 {
-	while( !I2CTransmitterIsReady( device->module ) );
+	while( !I2CTransmitterIsReady( port->module ) );
 	
-	if( I2CSendByte( device->module, data ) != I2C_SUCCESS )
+	if( I2CSendByte( port->module, data ) != I2C_SUCCESS )
 		return I2C_RC_SEND_BYTE_BUFFER_FAILED;
 	
-	while( !I2CTransmissionHasCompleted( device->module ) );
+	while( !I2CTransmissionHasCompleted( port->module ) );
 	
-	if( !I2CByteWasAcknowledged( device->module ) )
+	if( !I2CByteWasAcknowledged( port->module ) )
 		return I2C_RC_NO_ACK;
 	
 	return I2C_RC_SUCCESS;
@@ -324,7 +324,7 @@ PRIVATE I2C_RC I2C_SendByte(I2C_Device *device, uint8_t data)
 //!	@note			This function does NOT handle bus start / stop. It is up to the caller to manage 
 //!					the full bus arbitration proces.
 //!	
-//!	@param[in]		*device				Instance of 'I2C_Device{}' struct.
+//!	@param[in]		*port				Instance of 'I2C_Port{}' struct.
 //!	@param[out]		*data				Where to save byte read in from bus.
 //!	@param[out]		ackByte				Boolean flag indicating if a ACK/NACK bit should be 
 //!										transmitted (acknowledging receipt of byte). This is a 
@@ -335,20 +335,20 @@ PRIVATE I2C_RC I2C_SendByte(I2C_Device *device, uint8_t data)
 //!	@returns		Return code corresponding to an entry in the 'I2C_RC' enum (zero == success; 
 //!					non-zero == error code). Please see enum definition for details.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-PRIVATE I2C_RC I2C_ReadByte( I2C_Device *device, uint8_t *data, BOOL ackByte )
+PRIVATE I2C_RC I2C_ReadByte( I2C_Port *port, uint8_t *data, BOOL ackByte )
 {
-	if( I2CReceiverEnable( device->module, TRUE ) != I2C_SUCCESS )
+	if( I2CReceiverEnable( port->module, TRUE ) != I2C_SUCCESS )
 		return I2C_RC_RECEIVE_OVERFLOW;
 	
-	while( !I2CReceivedDataIsAvailable(device->module) );
+	while( !I2CReceivedDataIsAvailable(port->module) );
 	
 	if( ackByte )
-		I2CAcknowledgeByte( device->module, (BOOL)device->ackMode );
+		I2CAcknowledgeByte( port->module, (BOOL)port->ackMode );
 	
-	*data = I2CGetByte( device->module );
+	*data = I2CGetByte( port->module );
 	
 	if( ackByte )
-		while (!I2CAcknowledgeHasCompleted( device->module ));
+		while (!I2CAcknowledgeHasCompleted( port->module ));
 	
 	return I2C_RC_SUCCESS;
 	
@@ -381,16 +381,16 @@ PRIVATE I2C_RC I2C_SendAddr( I2C_Device *device, BOOL isReadRequest)
 	if( device->addrLength == I2C_ADDR_LEN_7_BITS )
 	{
 		I2C_7_BIT_ADDRESS				addr;
-		I2C_FORMAT_7_BIT_ADDRESS(		addr,	device->addr,	rwFlag	);
-		returnCode = I2C_SendByte(		device,	addr.byte				);
+		I2C_FORMAT_7_BIT_ADDRESS(		addr,			device->addr,	rwFlag	);
+		returnCode = I2C_SendByte(		&device->port,	addr.byte				);
 	}
 	else if( device->addrLength == I2C_ADDR_LEN_10_BITS )
 	{
 		I2C_10_BIT_ADDRESS				addr;
-		I2C_FORMAT_10_BIT_ADDRESS(		addr,	device->addr,	rwFlag	);
-		returnCode		= I2C_SendByte(	device,	addr.first_byte			);
+		I2C_FORMAT_10_BIT_ADDRESS(		addr,			device->addr,	rwFlag	);
+		returnCode		= I2C_SendByte(	&device->port,	addr.first_byte			);
 		if(returnCode != I2C_RC_SEND_BYTE_BUFFER_FAILED)
-			returnCode	= I2C_SendByte(	device,	addr.second_byte		);
+			returnCode	= I2C_SendByte(	&device->port,	addr.second_byte		);
 	}
 	
 	return returnCode;
