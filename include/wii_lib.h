@@ -12,6 +12,7 @@
 // INCLUDES
 //--------------------------------------------------------------------------------------------------
 #include <stdint.h>
+#include "i2c.h"
 
 
 
@@ -47,7 +48,28 @@ typedef enum _WII_LIB_TARGET_DEVICE
 #define	WII_LIB_MAX_PAYLOAD_SIZE			20									//!< Largest size (in bytes) of a I2C payload supported by Wii targets.
 
 
-#define	WII_LIB_I2C_TARGET_ADDR				0x52								//!< Address of target device on I2C bus. All Wii targets supported by library presently use the same (fixed) address.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//!	@brief			Defines all known I2C address values for communicating with Wii targets.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+typedef enum _WII_LIB_I2C_ADDR
+{
+	WII_LIB_I2C_ADDR_NUNCHUCK						= 0x52						//!< I2C address for Wii Nunchuck devices.
+} WII_LIB_I2C_ADDR;
+
+
+
+
+//==================================================================================================
+// TYPEDEFS
+//--------------------------------------------------------------------------------------------------
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//!	@brief			Defines the tracking information used when communicating with Wii targets.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+typedef struct _WiiLib_Device
+{
+	I2C_Device							i2c;								//!< I2C device information. Used when communicating with Wii device over I2C.
+	uint8_t								data[WII_LIB_MAX_PAYLOAD_SIZE];		//!< Payload used when transmitting and receiving data over I2C.
+} WiiLib_Device;
 
 
 
@@ -55,7 +77,7 @@ typedef enum _WII_LIB_TARGET_DEVICE
 //==================================================================================================
 // PUBLIC FUNCTION PROTOTYPES
 //--------------------------------------------------------------------------------------------------
-WII_LIB_RC	WiiLib_Init(I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE target);
+WII_LIB_RC		WiiLib_Init(	I2C_MODULE module,	uint32_t pbClk,	WII_LIB_TARGET_DEVICE target,	WiiLib_Device *device	);
 
 
 

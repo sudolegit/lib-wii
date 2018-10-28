@@ -24,11 +24,11 @@
 //==================================================================================================
 // PRIVATE FUNCTION PROTOTYPES
 //--------------------------------------------------------------------------------------------------
-PRIVATE I2C_RC		I2C_StartTransfer(	I2C_Port *port,		BOOL restart					);
-PRIVATE I2C_RC		I2C_StopTransfer(	I2C_Port *port 										);
-PRIVATE I2C_RC		I2C_SendByte(		I2C_Port *port,		uint8_t data					);
-PRIVATE I2C_RC		I2C_ReadByte(		I2C_Port *port,		uint8_t *data,	BOOL ackByte	);
-PRIVATE I2C_RC		I2C_SendAddr(		I2C_Device *device,	BOOL isReadRequest				);
+static I2C_RC		I2C_StartTransfer(	I2C_Port *port,		BOOL restart					);
+static I2C_RC		I2C_StopTransfer(	I2C_Port *port 										);
+static I2C_RC		I2C_SendByte(		I2C_Port *port,		uint8_t data					);
+static I2C_RC		I2C_ReadByte(		I2C_Port *port,		uint8_t *data,	BOOL ackByte	);
+static I2C_RC		I2C_SendAddr(		I2C_Device *device,	BOOL isReadRequest				);
 
 
 
@@ -237,7 +237,7 @@ I2C_RC I2C_TxRx( I2C_Device *device, uint8_t *dataTx, uint32_t lenTx, uint8_t *d
 //!	@returns		Return code corresponding to an entry in the 'I2C_RC' enum (zero == success; 
 //!					non-zero == error code). Please see enum definition for details.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-PRIVATE I2C_RC I2C_StartTransfer( I2C_Port *port, BOOL restart )
+static I2C_RC I2C_StartTransfer( I2C_Port *port, BOOL restart )
 {
 	if( restart )
 	{
@@ -272,7 +272,7 @@ PRIVATE I2C_RC I2C_StartTransfer( I2C_Port *port, BOOL restart )
 //!	@returns		Return code corresponding to an entry in the 'I2C_RC' enum (zero == success; 
 //!					non-zero == error code). Please see enum definition for details.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-PRIVATE I2C_RC I2C_StopTransfer( I2C_Port *port )
+static I2C_RC I2C_StopTransfer( I2C_Port *port )
 {
 	I2CStop( port->module ); 
 	
@@ -297,7 +297,7 @@ PRIVATE I2C_RC I2C_StopTransfer( I2C_Port *port )
 //!	@returns		Return code corresponding to an entry in the 'I2C_RC' enum (zero == success; 
 //!					non-zero == error code). Please see enum definition for details.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-PRIVATE I2C_RC I2C_SendByte( I2C_Port *port, uint8_t data )
+static I2C_RC I2C_SendByte( I2C_Port *port, uint8_t data )
 {
 	while( !I2CTransmitterIsReady( port->module ) );
 	
@@ -335,7 +335,7 @@ PRIVATE I2C_RC I2C_SendByte( I2C_Port *port, uint8_t data )
 //!	@returns		Return code corresponding to an entry in the 'I2C_RC' enum (zero == success; 
 //!					non-zero == error code). Please see enum definition for details.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-PRIVATE I2C_RC I2C_ReadByte( I2C_Port *port, uint8_t *data, BOOL ackByte )
+static I2C_RC I2C_ReadByte( I2C_Port *port, uint8_t *data, BOOL ackByte )
 {
 	if( I2CReceiverEnable( port->module, TRUE ) != I2C_SUCCESS )
 		return I2C_RC_RECEIVE_OVERFLOW;
@@ -373,7 +373,7 @@ PRIVATE I2C_RC I2C_ReadByte( I2C_Port *port, uint8_t *data, BOOL ackByte )
 //!	@returns		Return code corresponding to an entry in the 'I2C_RC' enum (zero == success; 
 //!					non-zero == error code). Please see enum definition for details.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-PRIVATE I2C_RC I2C_SendAddr( I2C_Device *device, BOOL isReadRequest)
+static I2C_RC I2C_SendAddr( I2C_Device *device, BOOL isReadRequest)
 {
 	I2C_RC			returnCode				= I2C_RC_SUCCESS;
 	BOOL			rwFlag					= (isReadRequest) ? I2C_READ : I2C_WRITE;

@@ -29,12 +29,12 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 typedef enum _I2C_RC
 {
-	I2C_RC_SUCCESS					= 0,										//!< Successfully completed task(s).
-	I2C_RC_START_FAILED				= 1,										//!< Failed to set start condition (as I2C master).
-	I2C_RC_RESTART_FAILED			= 2,										//!< Failed to send restart message (as I2C master).
-	I2C_RC_SEND_BYTE_BUFFER_FAILED	= 3,										//!< Failed to buffer a byte for transmission over I2C bus.
-	I2C_RC_NO_ACK					= 4,										//!< Data transmitted over bus but no 1.
-	I2C_RC_RECEIVE_OVERFLOW			= 5											//!< Unable to start receiving data due to buffer overflow.
+	I2C_RC_SUCCESS						= 0,									//!< Successfully completed task(s).
+	I2C_RC_START_FAILED					= 1,									//!< Failed to set start condition (as I2C master).
+	I2C_RC_RESTART_FAILED				= 2,									//!< Failed to send restart message (as I2C master).
+	I2C_RC_SEND_BYTE_BUFFER_FAILED		= 3,									//!< Failed to buffer a byte for transmission over I2C bus.
+	I2C_RC_NO_ACK						= 4,									//!< Data transmitted over bus but no 1.
+	I2C_RC_RECEIVE_OVERFLOW				= 5										//!< Unable to start receiving data due to buffer overflow.
 } I2C_RC;
 
 
@@ -91,10 +91,10 @@ typedef enum _I2C_ADDR_LEN
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 typedef struct _I2C_Port
 {
-	I2C_CONFIGURATION		config;												//!< Configuration flags for port (e.g. stop in idle).
-	I2C_MODULE				module;												//!< I2C module as defined by core MCP library (I2C1, I2C2, ...).
-	uint32_t				clkFreq;											//!< Clock frequency to use when communicating with the bus (as a master).
-	I2C_ACK_MODE			ackMode;											//!< Mode to use when acknowledging received data (high vs low ack).
+	I2C_CONFIGURATION					config;									//!< Configuration flags for port (e.g. stop in idle).
+	I2C_MODULE							module;									//!< I2C module as defined by core MCP library (I2C1, I2C2, ...).
+	uint32_t							clkFreq;								//!< Clock frequency to use when communicating with the bus (as a master).
+	I2C_ACK_MODE						ackMode;								//!< Mode to use when acknowledging received data (high vs low ack).
 } I2C_Port;
 
 
@@ -105,10 +105,10 @@ typedef struct _I2C_Port
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 typedef struct _I2C_Device
 {
-	I2C_Port				port;												//!< Structure tracking I2C port specific details.
-	I2C_MODE				mode;												//!< Mode for I2C device (master, slave, etc.).
-	uint16_t				addr;												//!< Identifier for device (e.g. 0x50).
-	I2C_ADDR_LEN			addrLength;											//!< Length of I2C address format (e.g. 7-bits).
+	I2C_Port							port;									//!< Structure tracking I2C port specific details.
+	I2C_MODE							mode;									//!< Mode for I2C device (master, slave, etc.).
+	uint16_t							addr;									//!< Identifier for device (e.g. 0x50).
+	I2C_ADDR_LEN						addrLength;								//!< Length of I2C address format (e.g. 7-bits).
 } I2C_Device;
 
 
