@@ -28,7 +28,8 @@ typedef enum _WII_LIB_RC
 	WII_LIB_RC_SUCCESS								= 0,											//!< Successfully completed task(s).
 	WII_LIB_RC_UNSUPPORTED_DEVICE					= 1,											//!< Wii target type presently unsupported.
 	WII_LIB_RC_TARGET_NOT_INITIALIZED				= 2,											//!< Target not initialized.
-	WII_LIB_RC_I2C_ERROR							= 3												//!< Failed to communicate with device over I2C.
+	WII_LIB_RC_I2C_ERROR							= 3,											//!< Failed to communicate with device over I2C.
+	WII_LIB_RC_TARGET_ID_MISMATCH					= 4												//!< Value read from target does not match expected value.
 } WII_LIB_RC;
 
 
@@ -39,10 +40,23 @@ typedef enum _WII_LIB_RC
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 typedef enum _WII_LIB_TARGET_DEVICE
 {
+	WII_LIB_TARGET_DEVICE_UNKNOWN					= -1,											//!< Placeholder for when a target device ID cannot be read.
+	WII_LIB_TARGET_DEVICE_UNSUPPORTED				= 0,											//!< Placeholder for unsupported target device type.
 	WII_LIB_TARGET_DEVICE_NUNCHUCK					= 1,											//!< Wii target type == Nunchuk.
 	WII_LIB_TARGET_DEVICE_CLASSIC_CONTROLLER		= 2,											//!< Wii target type == Classic Controller.
-	WII_LIB_TARGET_DEVICE_WII_MOTION_PLUS			= 3												//!< Wii target type == Wii Motion Plus.
+	WII_LIB_TARGET_DEVICE_MOTION_PLUS				= 3,											//!< Wii target type == Wii Motion Plus.
+	WII_LIB_TARGET_DEVICE_MOTION_PLUS_PASS_NUNCHUCK	= 4,											//!< Wii target type == Wii Motion Plus that is passing through the Wii Nunchuck.
+	WII_LIB_TARGET_DEVICE_MOTION_PLUS_PASS_CLASSIC	= 5												//!< Wii target type == Wii Motion Plus that is passing through the Wii Classic Controller.
 } WII_LIB_TARGET_DEVICE;
+
+
+// Define byte identifiers that are associated with each target device type.
+#define	WII_LIB_ID_LENGTH							6												//!< Length (in bytes) for a ID read from a target device.
+#define	WII_LIB_ID_NUNCHUCK							{ 0x00, 0x00, 0xA4, 0x20, 0x00, 0x00 }			//!< Identifier read when device is Wii Nunchuck.
+#define	WII_LIB_ID_CLASSIC_CONTROLLER				{ 0x00, 0x00, 0xA4, 0x20, 0x01, 0x01 }			//!< Identifier read when device is Wii Classic Controller.
+#define	WII_LIB_ID_WII_MOTION_PLUS					{ 0x00, 0x00, 0xA4, 0x20, 0x04, 0x05 }			//!< Identifier read when device is Wii Motion Plus.
+#define	WII_LIB_ID_WII_MOTION_PLUS_PASS_NUNCHUCK	{ 0x00, 0x00, 0xA4, 0x20, 0x05, 0x05 }			//!< Identifier read when device is Wii Motion Plus passing through the Wii Nunchuck.
+#define	WII_LIB_ID_WII_MOTION_PLUS_PASS_CLASSIC		{ 0x00, 0x00, 0xA4, 0x20, 0x07, 0x05 }			//!< Identifier read when device is Wii Motion Plus passing through the Wii Classic Controller.
 
 
 #define	WII_LIB_MAX_PAYLOAD_SIZE					20												//!< Largest size (in bytes) of a I2C payload supported by Wii targets.

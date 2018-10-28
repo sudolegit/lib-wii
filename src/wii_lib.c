@@ -24,6 +24,15 @@ static	uint8_t							mBuff[WII_LIB_MAX_PAYLOAD_SIZE];		// Buffer used as common 
 
 
 //==================================================================================================
+// PRIVATE FUNCTION PROTOTYPES
+//--------------------------------------------------------------------------------------------------
+static WII_LIB_RC				WiiLib_Decrypt(				uint8_t *data,			int8_t len	);
+static WII_LIB_TARGET_DEVICE	WiiLib_DetermineDeviceType(	WiiLib_Device *device				);
+
+
+
+
+//==================================================================================================
 // PUBLIC METHODS
 //--------------------------------------------------------------------------------------------------
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -38,13 +47,15 @@ static	uint8_t							mBuff[WII_LIB_MAX_PAYLOAD_SIZE];		// Buffer used as common 
 //!	@param[in]		target				Target type. Should be of type 'WII_LIB_TARGET_DEVICE'.
 //!	@param[in]		decryptData			Boolean flag indicating if data should be initialized as 
 //!										deecrypted.
-//!	@param[out]		*device				Instance of 'WiiLib_Device{}' to populate/utilize.
+//!	@param[in]		*device				Instance of 'WiiLib_Device{}' to populate/utilize.
 //!	
 //!	@returns		Return code corresponding to an entry in the 'WII_LIB_RC' enum (zero == success; 
 //!					non-zero == error code). Please see enum definition for details.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WII_LIB_RC WiiLib_Init(I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE target, BOOL decryptData, WiiLib_Device *device)
+WII_LIB_RC WiiLib_Init( I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE target, BOOL decryptData, WiiLib_Device *device )
 {
+	WII_LIB_TARGET_DEVICE		targetValueRead;
+	
 	// Prepare I2C port for communication as a master device.
 	device->i2c.port.config			= I2C_ENABLE_SLAVE_CLOCK_STRETCHING | I2C_STOP_IN_IDLE;
 	device->i2c.port.module			= module;
@@ -62,10 +73,12 @@ WII_LIB_RC WiiLib_Init(I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE 
 	{
 		case WII_LIB_TARGET_DEVICE_NUNCHUCK:
 		case WII_LIB_TARGET_DEVICE_CLASSIC_CONTROLLER:
+		case WII_LIB_TARGET_DEVICE_MOTION_PLUS_PASS_NUNCHUCK:
+		case WII_LIB_TARGET_DEVICE_MOTION_PLUS_PASS_CLASSIC:
 			device->i2c.addr		= WII_LIB_I2C_ADDR_STANDARD;
 			break;
 		
-		case WII_LIB_TARGET_DEVICE_WII_MOTION_PLUS:
+		case WII_LIB_TARGET_DEVICE_MOTION_PLUS:
 			device->i2c.addr		= WII_LIB_I2C_ADDR_WII_MOTION_PLUS;
 			break;
 		
@@ -80,6 +93,17 @@ WII_LIB_RC WiiLib_Init(I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE 
 	if( WiiLib_ConfigureDevice( device ) != WII_LIB_RC_SUCCESS )
 		return WII_LIB_RC_TARGET_NOT_INITIALIZED;
 	
+	// Roughly 100 ms delay
+	uint32_t delay = 166666;while(--delay);
+	
+	// Confirm target device ID. Override value and return error if mismatch detected.
+	targetValueRead = WiiLib_DetermineDeviceType(device);
+	if( targetValueRead != target )
+	{
+		device->target = targetValueRead;
+		return WII_LIB_RC_TARGET_ID_MISMATCH;
+	}
+	
 	return WII_LIB_RC_SUCCESS;
 	
 }
@@ -91,13 +115,13 @@ WII_LIB_RC WiiLib_Init(I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE 
 //!	@details		Initializes target device in an encrypted or decrypted state based on the 
 //!					configuration flags in the provided device.
 //!	
-//!	@param[out]		*device				Instance of 'WiiLib_Device{}' defining target device 
+//!	@param[in]		*device				Instance of 'WiiLib_Device{}' defining target device 
 //!										interaction.
 //!	
 //!	@returns		Return code corresponding to an entry in the 'WII_LIB_RC' enum (zero == success; 
 //!					non-zero == error code). Please see enum definition for details.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WII_LIB_RC WiiLib_ConfigureDevice( WiiLib_Device *device)
+WII_LIB_RC WiiLib_ConfigureDevice( WiiLib_Device *device )
 {
 	// Initialize in most basic form. This leaves data in an encypted state.
 	if( device->dataEncrypted )
@@ -125,6 +149,91 @@ WII_LIB_RC WiiLib_ConfigureDevice( WiiLib_Device *device)
 		{
 			return WII_LIB_RC_I2C_ERROR;
 		}
+	}
+	
+	return WII_LIB_RC_SUCCESS;
+	
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//!	@brief			Handles the process of decrypting data received from a target device.
+//!	
+//!	@details		Queries the device for it's identifier by writing '0xFA' to the target and 
+//!					reading back the 6-byte value. The value is decrypted if necessary before then 
+//!					comparing it against the expected ID values.
+//!	
+//!	@note			Presently, the ID comparison method feels a bit hacky, but working for now 
+//!					(function may be revised later).
+//!	
+//!	@param[in]		*device				Instance of 'WiiLib_Device{}'.
+//!	
+//!	@returns		Entry from 'WII_LIB_TARGET_DEVICE{}' that represents the target device 
+//!					determined.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+static WII_LIB_TARGET_DEVICE WiiLib_DetermineDeviceType( WiiLib_Device *device )
+{
+	mBuff[0] = 0xFA;
+	if( I2C_Transmit( &device->i2c, &mBuff[0], 1, TRUE ) == I2C_RC_SUCCESS )
+	{
+		if( I2C_Receive( &device->i2c, &device->dataCurrent[0], WII_LIB_ID_LENGTH, TRUE ) == I2C_RC_SUCCESS )
+		{
+			if(device->dataEncrypted)
+				WiiLib_Decrypt( &device->dataCurrent[0], WII_LIB_ID_LENGTH );
+			
+			{
+				uint8_t	tmp[WII_LIB_ID_LENGTH] = WII_LIB_ID_NUNCHUCK;
+				if( !memcmp( &tmp[0], &device->dataCurrent[0], WII_LIB_ID_LENGTH ) )
+					return WII_LIB_TARGET_DEVICE_NUNCHUCK;
+			}
+			{
+				uint8_t	tmp[WII_LIB_ID_LENGTH] = WII_LIB_ID_CLASSIC_CONTROLLER;
+				if( !memcmp( &tmp[0], &device->dataCurrent[0], WII_LIB_ID_LENGTH ) )
+					return WII_LIB_TARGET_DEVICE_NUNCHUCK;
+			}
+			{
+				uint8_t	tmp[WII_LIB_ID_LENGTH] = WII_LIB_ID_WII_MOTION_PLUS;
+				if( !memcmp( &tmp[0], &device->dataCurrent[0], WII_LIB_ID_LENGTH ) )
+					return WII_LIB_TARGET_DEVICE_NUNCHUCK;
+			}
+			{
+				uint8_t	tmp[WII_LIB_ID_LENGTH] = WII_LIB_ID_WII_MOTION_PLUS_PASS_NUNCHUCK;
+				if( !memcmp( &tmp[0], &device->dataCurrent[0], WII_LIB_ID_LENGTH ) )
+					return WII_LIB_TARGET_DEVICE_NUNCHUCK;
+			}
+			{
+				uint8_t	tmp[WII_LIB_ID_LENGTH] = WII_LIB_ID_WII_MOTION_PLUS_PASS_CLASSIC;
+				if( !memcmp( &tmp[0], &device->dataCurrent[0], WII_LIB_ID_LENGTH ) )
+					return WII_LIB_TARGET_DEVICE_NUNCHUCK;
+			}
+			
+			return WII_LIB_TARGET_DEVICE_UNSUPPORTED;
+			
+		}
+	}
+	
+	return WII_LIB_TARGET_DEVICE_UNKNOWN;
+	
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//!	@brief			Handles the process of decrypting data received from a target device.
+//!	
+//!	@details		Executes the following to decrypt:
+//!						-	x = (x [xor] 0x17) + 0x17
+//!	
+//!	@param[in]		*data				Pointer to data to decrypt.
+//!	@param[in]		len					Number of bytes of data to decrypt.
+//!	
+//!	@returns		Return code corresponding to an entry in the 'WII_LIB_RC' enum (zero == success; 
+//!					non-zero == error code). Please see enum definition for details.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+static WII_LIB_RC WiiLib_Decrypt( uint8_t *data, int8_t len )
+{
+	for(;len > 0; --len, ++data)
+	{
+		*data = (((*data ^ 0x17) + 0x17) & 0x00FF);
 	}
 	
 	return WII_LIB_RC_SUCCESS;
