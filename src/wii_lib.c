@@ -56,6 +56,10 @@ WII_LIB_RC WiiLib_Init( I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE
 {
 	WII_LIB_TARGET_DEVICE		targetValueRead;
 	
+	// Presume delay not yet initialized and initialize delay module. Even if this is not the case, 
+	// should have no harm (in theory/so long as pbClk not different between devices).
+	Delay_Init(pbClk);
+	
 	// Prepare I2C port for communication as a master device.
 	device->i2c.port.config			= I2C_ENABLE_SLAVE_CLOCK_STRETCHING | I2C_STOP_IN_IDLE;
 	device->i2c.port.module			= module;
@@ -90,11 +94,13 @@ WII_LIB_RC WiiLib_Init( I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE
 	// Initialize I2C port and push out settings to initialize device.
 	if( I2C_InitPort(&device->i2c.port, pbClk) != I2C_RC_SUCCESS )
 		return WII_LIB_RC_I2C_ERROR;
+	
+	Delay_Ms(10);
+	
 	if( WiiLib_ConfigureDevice( device ) != WII_LIB_RC_SUCCESS )
 		return WII_LIB_RC_TARGET_NOT_INITIALIZED;
 	
-	// Roughly 100 ms delay
-	uint32_t delay = 166666;while(--delay);
+	Delay_Ms(10);
 	
 	// Confirm target device ID. Override value and return error if mismatch detected.
 	targetValueRead = WiiLib_DetermineDeviceType(device);
@@ -138,7 +144,7 @@ WII_LIB_RC WiiLib_ConfigureDevice( WiiLib_Device *device )
 		mBuff[1] = 0x55;
 		if( I2C_Transmit( &device->i2c, &mBuff[0], 2, TRUE ) == I2C_RC_SUCCESS )
 		{
-			uint32_t delay = 16666;while(--delay); // Roughly 10 ms delay
+			Delay_Ms(10);
 			
 			mBuff[0] = 0xFB;
 			mBuff[1] = 0x00;

@@ -122,4 +122,5 @@ I2C_RC		I2C_Transmit(		I2C_Device *device,	uint8_t *data,		uint32_t len,	BOOL ac
 I2C_RC		I2C_Receive(		I2C_Device *device,	uint8_t *data,		uint32_t len,	BOOL ackMessages								);
 I2C_RC		I2C_TxRx(			I2C_Device *device,	uint8_t *dataTx,	uint32_t lenTx,	uint8_t *dataRx,	uint32_t lenRx,	BOOL ack	);
 
+
 #endif	// __I2C__

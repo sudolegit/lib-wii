@@ -194,7 +194,8 @@ I2C_RC I2C_TxRx( I2C_Device *device, uint8_t *dataTx, uint32_t lenTx, uint8_t *d
 	{	
 		// Restart transmission rather than stopping and starting it.
 		while( I2C_StartTransfer(&device->port, TRUE) != I2C_SUCCESS );
-		uint32_t delay = 16666;while(--delay); // Roughly 10 ms delay
+		
+		Delay_Ms(10);
 		
 		// Read in the requested number of data bytes.
 		I2C_SendAddr( device, TRUE );
