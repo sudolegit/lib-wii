@@ -29,7 +29,7 @@
 // PRIVATE FUNCTION PROTOTYPES
 //--------------------------------------------------------------------------------------------------
 static I2C_RC		I2C_StartTransfer(	I2C_Port *port,		BOOL restart					);
-static I2C_RC		I2C_StopTransfer(	I2C_Port *port 										);
+static I2C_RC		I2C_StopTransfer(	I2C_Port *port,		uint32_t delay_Ms				);
 static I2C_RC		I2C_SendByte(		I2C_Port *port,		uint8_t data					);
 static I2C_RC		I2C_ReadByte(		I2C_Port *port,		uint8_t *data,	BOOL ackByte	);
 static I2C_RC		I2C_SendAddr(		I2C_Device *device,	BOOL isReadRequest				);
@@ -101,7 +101,7 @@ I2C_RC I2C_Transmit( I2C_Device *device, uint8_t *data, uint32_t len, BOOL ackRe
 		
 	}
 	
-	I2C_StopTransfer(&device->port);
+	I2C_StopTransfer(&device->port, I2C_DELAY_POST_SEND_MS);
 	
 	return returnCode;
 }
@@ -142,8 +142,7 @@ I2C_RC I2C_Receive( I2C_Device *device, uint8_t *data, uint32_t len, BOOL ackMes
 		returnCode = I2C_ReadByte( &device->port, (data + index++), ackMessages );
 	}
 	
-	Delay_Ms(10);
-	I2C_StopTransfer(&device->port);
+	I2C_StopTransfer(&device->port, I2C_DELAY_POST_READ_MS);
 	
 	I2CReceiverEnable( device->port.module, FALSE );
 	
@@ -207,7 +206,7 @@ I2C_RC I2C_TxRx( I2C_Device *device, uint8_t *dataTx, uint32_t lenTx, uint8_t *d
 			while( I2C_StartTransfer(&device->port, TRUE) != I2C_SUCCESS );
 		} else
 		{
-			I2C_StopTransfer(&device->port);
+			I2C_StopTransfer(&device->port, I2C_DELAY_POST_SEND_MS);
 			Delay_Ms(1);
 			while( I2C_StartTransfer(&device->port, FALSE) != I2C_SUCCESS );
 		} 
@@ -224,8 +223,7 @@ I2C_RC I2C_TxRx( I2C_Device *device, uint8_t *dataTx, uint32_t lenTx, uint8_t *d
 		I2CReceiverEnable( device->port.module, FALSE );
 	}	
 	
-	Delay_Ms(10);
-	I2C_StopTransfer(&device->port);
+	I2C_StopTransfer(&device->port, I2C_DELAY_POST_READ_MS);
 	
 	return returnCode;
 }
@@ -285,12 +283,18 @@ static I2C_RC I2C_StartTransfer( I2C_Port *port, BOOL restart )
 //!	@warning		This is a blocking function. It will not return until the bus is idle.
 //!	
 //!	@param[in]		*port				Instance of 'I2C_Port{}' struct.
+//!	@param[in]		delay_Ms			Number of milliseconds to delay before asserting stop 
+//!										condition. Typically used when reading data from targets (vs 
+//!										sending commands).
 //!	
 //!	@returns		Return code corresponding to an entry in the 'I2C_RC' enum (zero == success; 
 //!					non-zero == error code). Please see enum definition for details.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-static I2C_RC I2C_StopTransfer( I2C_Port *port )
+static I2C_RC I2C_StopTransfer( I2C_Port *port, uint32_t delay_Ms )
 {
+	if( delay_Ms > 0 )
+		Delay_Ms(delay_Ms);
+	
 	I2CStop( port->module ); 
 	
 	while( !(I2CGetStatus(port->module) & I2C_STOP) );
