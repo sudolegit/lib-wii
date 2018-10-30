@@ -202,12 +202,12 @@ I2C_RC I2C_TxRx( I2C_Device *device, uint8_t *dataTx, uint32_t lenTx, uint8_t *d
 	{	
 		if( useRepeatedStart )
 		{
-			Delay_Ms(1);
+			Delay_Ms(I2C_DELAY_BETWEEN_TX_RX_MS);
 			while( I2C_StartTransfer(&device->port, TRUE) != I2C_SUCCESS );
 		} else
 		{
 			I2C_StopTransfer(&device->port, I2C_DELAY_POST_SEND_MS);
-			Delay_Ms(1);
+			Delay_Ms(I2C_DELAY_BETWEEN_TX_RX_MS);
 			while( I2C_StartTransfer(&device->port, FALSE) != I2C_SUCCESS );
 		} 
 		

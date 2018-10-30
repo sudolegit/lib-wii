@@ -84,6 +84,7 @@ typedef enum _I2C_ADDR_LEN
 // The following delays are executed prior to raising the stop conditoin on the bus.
 #define	I2C_DELAY_POST_SEND_MS			0										//!< Delay in milliseconds after trasnmitting a payload across the I2C bus.
 #define	I2C_DELAY_POST_READ_MS			10										//!< Delay in milliseconds after reading a payload from the I2C bus.
+#define	I2C_DELAY_BETWEEN_TX_RX_MS		1										//!< Delay in milliseconds between sending a TX request and starting the following RX reqeust to read the reply.
 
 
 
