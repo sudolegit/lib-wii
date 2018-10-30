@@ -12,6 +12,16 @@
 #include "i2c.h"
 #include "wii_lib.h"
 
+/*/ 
+TO DO:
+	-	Read bytes func (device, addr, len)
+		-	Wrapper for reading status (0x00)
+		-	Wrapper for reading ID (0xFA)
+		-	Wrapper for finding home/zero position (save to different bytes)
+		**	memset to zero before reading!
+	-	Change TxRx I2C function to opt not to send stop command if desired.
+// */
+
 
 
 
@@ -100,8 +110,6 @@ WII_LIB_RC WiiLib_Init( I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE
 	if( WiiLib_ConfigureDevice( device ) != WII_LIB_RC_SUCCESS )
 		return WII_LIB_RC_TARGET_NOT_INITIALIZED;
 	
-	Delay_Ms(10);
-	
 	// Confirm target device ID. Override value and return error if mismatch detected.
 	targetValueRead = WiiLib_DetermineDeviceType(device);
 	if( targetValueRead != target )
@@ -135,7 +143,8 @@ WII_LIB_RC WiiLib_ConfigureDevice( WiiLib_Device *device )
 		mBuff[0] = 0x40;
 		mBuff[1] = 0x00;
 		if( I2C_Transmit( &device->i2c, &mBuff[0], 2, TRUE ) != I2C_RC_SUCCESS )
-			return WII_LIB_RC_I2C_ERROR; 
+			return WII_LIB_RC_I2C_ERROR;
+		Delay_Ms(20);
 	}
 	// Initialize such that future data transmitted is no longer encrypted.
 	else
@@ -150,6 +159,7 @@ WII_LIB_RC WiiLib_ConfigureDevice( WiiLib_Device *device )
 			mBuff[1] = 0x00;
 			if( I2C_Transmit( &device->i2c, &mBuff[0], 2, TRUE ) != I2C_RC_SUCCESS )
 				return WII_LIB_RC_I2C_ERROR;
+			Delay_Ms(20);
 		}
 		else
 		{
@@ -180,8 +190,15 @@ WII_LIB_RC WiiLib_ConfigureDevice( WiiLib_Device *device )
 static WII_LIB_TARGET_DEVICE WiiLib_DetermineDeviceType( WiiLib_Device *device )
 {
 	mBuff[0] = 0xFA;
+	
+	I2C_TxRx( &device->i2c, &mBuff[0], 1, &device->dataCurrent[0], 6, TRUE, FALSE );
+	Delay_Ms(50);
+	I2C_TxRx( &device->i2c, &mBuff[0], 1, &device->dataCurrent[0], 6, TRUE, FALSE );
+	Delay_Ms(50);
+	
 	if( I2C_Transmit( &device->i2c, &mBuff[0], 1, TRUE ) == I2C_RC_SUCCESS )
 	{
+		Delay_Ms(1);
 		if( I2C_Receive( &device->i2c, &device->dataCurrent[0], WII_LIB_ID_LENGTH, TRUE ) == I2C_RC_SUCCESS )
 		{
 			if(device->dataEncrypted)

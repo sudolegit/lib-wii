@@ -7,6 +7,10 @@
 //!					see the library file:
 //!						-	[mc32-install]\pic32-libs\include\peripheral\i2c.h
 //!	
+//!	@warning		The Wii target this library was designed for holds the SDA line low for ~7-8 ms 
+//!					after requesting the last byte of data. Adding a ~10 ms delay before setting 
+//!					stop condition prevents erroneous bus collisions. 
+//!	
 //!	@warning		Many of the functions used in this file are blocking. Long term, a timeout would 
 //!					be a good idea, but skipping for current development timeframe.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -138,9 +142,10 @@ I2C_RC I2C_Receive( I2C_Device *device, uint8_t *data, uint32_t len, BOOL ackMes
 		returnCode = I2C_ReadByte( &device->port, (data + index++), ackMessages );
 	}
 	
-	I2CReceiverEnable( device->port.module, FALSE );
-	
+	Delay_Ms(10);
 	I2C_StopTransfer(&device->port);
+	
+	I2CReceiverEnable( device->port.module, FALSE );
 	
 	return returnCode;
 }
@@ -167,11 +172,15 @@ I2C_RC I2C_Receive( I2C_Device *device, uint8_t *data, uint32_t len, BOOL ackMes
 //!	@param[in]		lenRx				Amount of data to read (in bytes).
 //!	@param[in]		ackRequired			Flag indicating if an acknowledgement of message should 
 //!										occur during tx and be expected during rx.
+//!	@param[in]		useRepeatedStart	Boolean flag controlling if send repeated start rather than 
+//!										releasing and re-acquiring the bus between tx and rx. TRUE 
+//!										== send repeatedstart condition; FALSE == send STOP and 
+//!										then a fresh START condition.
 //!	
 //!	@returns		Return code corresponding to an entry in the 'I2C_RC' enum (zero == success; 
 //!					non-zero == error code). Please see enum definition for details.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-I2C_RC I2C_TxRx( I2C_Device *device, uint8_t *dataTx, uint32_t lenTx, uint8_t *dataRx, uint32_t lenRx, BOOL ack )
+I2C_RC I2C_TxRx( I2C_Device *device, uint8_t *dataTx, uint32_t lenTx, uint8_t *dataRx, uint32_t lenRx, BOOL ack, BOOL useRepeatedStart )
 {
 	I2C_RC			returnCode				= I2C_RC_SUCCESS;
 	uint32_t		index					= 0;
@@ -192,10 +201,16 @@ I2C_RC I2C_TxRx( I2C_Device *device, uint8_t *dataTx, uint32_t lenTx, uint8_t *d
 	
 	if( returnCode == I2C_RC_SUCCESS )
 	{	
-		// Restart transmission rather than stopping and starting it.
-		while( I2C_StartTransfer(&device->port, TRUE) != I2C_SUCCESS );
-		
-		Delay_Ms(10);
+		if( useRepeatedStart )
+		{
+			Delay_Ms(1);
+			while( I2C_StartTransfer(&device->port, TRUE) != I2C_SUCCESS );
+		} else
+		{
+			I2C_StopTransfer(&device->port);
+			Delay_Ms(1);
+			while( I2C_StartTransfer(&device->port, FALSE) != I2C_SUCCESS );
+		} 
 		
 		// Read in the requested number of data bytes.
 		I2C_SendAddr( device, TRUE );
@@ -209,6 +224,7 @@ I2C_RC I2C_TxRx( I2C_Device *device, uint8_t *dataTx, uint32_t lenTx, uint8_t *d
 		I2CReceiverEnable( device->port.module, FALSE );
 	}	
 	
+	Delay_Ms(10);
 	I2C_StopTransfer(&device->port);
 	
 	return returnCode;
