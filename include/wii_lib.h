@@ -18,7 +18,7 @@
 
 
 //==================================================================================================
-//	CONSTANTS
+//	CONSTANTS => GENERAL
 //--------------------------------------------------------------------------------------------------
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //!	@brief			Enum of return code values.
@@ -36,6 +36,14 @@ typedef enum _WII_LIB_RC
 } WII_LIB_RC;
 
 
+#define	WII_LIB_MAX_CONNECTION_ATTEMPTS				5												//!< Maximum number of connectoin attempts to try before presuming device not available. May not exceed 255.
+
+
+
+
+//==================================================================================================
+//	CONSTANTS => WII COMMUNICATOIN PROTOCOL
+//--------------------------------------------------------------------------------------------------
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //!	@brief			Defines constants used as abstractions to indicate target device type. 
 //!					Referenced to determine initialization process, register settings, and how to 
@@ -91,13 +99,16 @@ typedef enum _WII_LIB_PARAM
 #define	WII_LIB_PARAM_RESPONSE_LEN_EXTENDED			20												//!< Number of bytes to read for long parameter queries
 
 
-#define	WII_LIB_MAX_CONNECTION_ATTEMPTS				5												//!< Maximum number of connectoin attempts to try before presuming device not available. May not exceed 255.
 
 
+//==================================================================================================
+//	CONSTANTS => DELAYS
+//--------------------------------------------------------------------------------------------------
 // Define delay constants used in library.
 #define	WII_LIB_DELAY_I2C_SETTLE_TIME_MS			10												//!< Time to delay in milliseconds after initializing the I2C bus before sending any traffic.
 #define	WII_LIB_DELAY_AFTER_CONNECTION_ATTEMPT_MS	500												//!< Time to delay in milliseconds after a failed connection attempt (before next attempt in the initialization function).
 #define	WII_LIB_DELAY_AFTER_CONFIG_MESSAGE_MS		20												//!< Time to delay in milliseconds after after sending a configuration message to the target.
+
 
 // The following delays are executed prior to raising the stop conditoin on the bus.
 #define	WII_LIB_I2C_DELAY_POST_SEND_MS				0												//!< Delay in milliseconds after trasnmitting a payload across the I2C bus.
