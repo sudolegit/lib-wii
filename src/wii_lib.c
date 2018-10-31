@@ -53,7 +53,8 @@ static BOOL						WiiLib_ValidateDataReceived(	uint8_t *data,			uint32_t len	);
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 WII_LIB_RC WiiLib_Init( I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE target, BOOL decryptData, WiiLib_Device *device )
 {
-	WII_LIB_TARGET_DEVICE		targetValueRead;
+	WII_LIB_RC					returnCode						= WII_LIB_RC_SUCCESS;
+	uint8_t						connectionAttemptsReamining		= WII_LIB_MAX_CONNECTION_ATTEMPTS;
 	
 	// Presume delay not yet initialized and initialize delay module. Even if this is not the case, 
 	// should have no harm (in theory/so long as pbClk not different between devices).
@@ -94,16 +95,48 @@ WII_LIB_RC WiiLib_Init( I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE
 	if( I2C_InitPort(&device->i2c.port, pbClk) != I2C_RC_SUCCESS )
 		return WII_LIB_RC_I2C_ERROR;
 	
-	Delay_Ms(10);
+	Delay_Ms(WII_LIB_DELAY_I2C_SETTLE_TIME_MS);
 	
+	// Attempt to connect to the target device until we are successful, run out of attempts, or connect successfully but to the wrong target type.
+	do
+	{
+		if( connectionAttemptsReamining != WII_LIB_MAX_CONNECTION_ATTEMPTS )
+			Delay_Ms( WII_LIB_DELAY_AFTER_CONNECTION_ATTEMPT_MS );
+		returnCode = WiiLib_ConnectToTarget( device );
+	} while( returnCode != WII_LIB_RC_SUCCESS && returnCode != WII_LIB_RC_TARGET_ID_MISMATCH && (--connectionAttemptsReamining > 0) );	
+	
+	return returnCode;
+	
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//!	@brief			Initializes the Wii target device (e.g. nunchuck).
+//!	
+//!	@details		Pushes out initialization messages to target device. If device ack's messages, 
+//!					attempts to validate the target ID. If successful, device is up and running, 
+//!					but before exiting the function, grabs the initial device status (queries 
+//!					WII_LIB_PARAM_STATUS).
+//!	
+//!	@param[in]		*device				Instance of 'WiiLib_Device{}' to utilize.
+//!	
+//!	@returns		Return code corresponding to an entry in the 'WII_LIB_RC' enum (zero == success; 
+//!					non-zero == error code). Please see enum definition for details.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+WII_LIB_RC WiiLib_ConnectToTarget( WiiLib_Device *device )
+{
+	WII_LIB_TARGET_DEVICE		targetValueRead;
+	
+	// Push out configuration settings to device (uses flags defined when 'device' was initialized).
 	if( WiiLib_ConfigureDevice( device ) != WII_LIB_RC_SUCCESS )
 		return WII_LIB_RC_TARGET_NOT_INITIALIZED;
 	
-	// Confirm target device ID. Override value and return error if mismatch detected.
+	// Confirm target is correct target by confirming able to query device ID and that the returned 
+	// value matches the desired value.
 	targetValueRead = WiiLib_DetermineDeviceType(device);
-	if( targetValueRead != target )
+	if( targetValueRead != device->target )
 	{
-		device->target = targetValueRead;
+		device->target	= targetValueRead;
 		return WII_LIB_RC_TARGET_ID_MISMATCH;
 	}
 	
@@ -135,7 +168,6 @@ WII_LIB_RC WiiLib_ConfigureDevice( WiiLib_Device *device )
 		buff[1] = 0x00;
 		if( I2C_Transmit( &device->i2c, &buff[0], 2, TRUE ) != I2C_RC_SUCCESS )
 			return WII_LIB_RC_I2C_ERROR;
-		Delay_Ms(20);
 	}
 	// Initialize such that future data transmitted is no longer encrypted.
 	else
@@ -144,19 +176,20 @@ WII_LIB_RC WiiLib_ConfigureDevice( WiiLib_Device *device )
 		buff[1] = 0x55;
 		if( I2C_Transmit( &device->i2c, &buff[0], 2, TRUE ) == I2C_RC_SUCCESS )
 		{
-			Delay_Ms(10);
+			Delay_Ms(WII_LIB_DELAY_AFTER_CONFIG_MESSAGE_MS);
 			
 			buff[0] = 0xFB;
 			buff[1] = 0x00;
 			if( I2C_Transmit( &device->i2c, &buff[0], 2, TRUE ) != I2C_RC_SUCCESS )
 				return WII_LIB_RC_I2C_ERROR;
-			Delay_Ms(20);
 		}
 		else
 		{
 			return WII_LIB_RC_I2C_ERROR;
 		}
 	}
+	
+	Delay_Ms(WII_LIB_DELAY_AFTER_CONFIG_MESSAGE_MS);
 	
 	return WII_LIB_RC_SUCCESS;
 	
@@ -182,9 +215,9 @@ WII_LIB_RC WiiLib_ConfigureDevice( WiiLib_Device *device )
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 WII_LIB_RC WiiLib_QueryParameter( WiiLib_Device *device, WII_LIB_PARAM param )
 {
-	uint8_t			buffIn[WII_LIB_QUERY_PARAM_REQUEST_LEN]	= { param };
+	uint8_t			buffIn[WII_LIB_PARAM_REQUEST_LEN]		= { param };
 	uint8_t			buffOut[WII_LIB_MAX_PAYLOAD_SIZE]		= {0};
-	uint32_t		lenIn									= WII_LIB_QUERY_PARAM_REQUEST_LEN;
+	uint32_t		lenIn									= WII_LIB_PARAM_REQUEST_LEN;
 	uint32_t		lenOut;
 	
 	// Validate paramter ID provided and define response length (amount to query over I2C bus).

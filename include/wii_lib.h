@@ -86,11 +86,18 @@ typedef enum _WII_LIB_PARAM
 	WII_LIB_PARAM_DEVICE_TYPE						= 0xFA											//!< Parameter ID (register address) for querying the device identifier from a target device.
 } WII_LIB_PARAM;
 
-#define	WII_LIB_QUERY_PARAM_REQUEST_LEN				1												//!< Number of bytes to push when starting parameter query.
-
+#define	WII_LIB_PARAM_REQUEST_LEN					1												//!< Number of bytes to push when starting parameter query.
 #define	WII_LIB_PARAM_RESPONSE_LEN_DEFAULT			6												//!< Number of bytes to read for standard [most] parameter queries.
 #define	WII_LIB_PARAM_RESPONSE_LEN_EXTENDED			20												//!< Number of bytes to read for long parameter queries
 
+
+#define	WII_LIB_MAX_CONNECTION_ATTEMPTS				5												//!< Maximum number of connectoin attempts to try before presuming device not available. May not exceed 255.
+
+
+// Define delay constants used in library.
+#define	WII_LIB_DELAY_I2C_SETTLE_TIME_MS			10												//!< Time to delay in milliseconds after initializing the I2C bus before sending any traffic.
+#define	WII_LIB_DELAY_AFTER_CONNECTION_ATTEMPT_MS	500												//!< Time to delay in milliseconds after a failed connection attempt (before next attempt in the initialization function).
+#define	WII_LIB_DELAY_AFTER_CONFIG_MESSAGE_MS		20												//!< Time to delay in milliseconds after after sending a configuration message to the target.
 
 
 
@@ -116,8 +123,9 @@ typedef struct _WiiLib_Device
 //==================================================================================================
 //	PUBLIC FUNCTION PROTOTYPES
 //--------------------------------------------------------------------------------------------------
-WII_LIB_RC		WiiLib_Init(				I2C_MODULE module,		uint32_t pbClk,	WII_LIB_TARGET_DEVICE target,	BOOL decryptData,	WiiLib_Device *device	);
-WII_LIB_RC		WiiLib_ConfigureDevice(		WiiLib_Device *device																								);
-WII_LIB_RC		WiiLib_QueryParameter(		WiiLib_Device *device,	WII_LIB_PARAM param																			);
+WII_LIB_RC		WiiLib_Init(			I2C_MODULE module,		uint32_t pbClk,	WII_LIB_TARGET_DEVICE target,	BOOL decryptData,	WiiLib_Device *device	);
+WII_LIB_RC		WiiLib_ConnectToTarget(	WiiLib_Device *device 																								);
+WII_LIB_RC		WiiLib_ConfigureDevice(	WiiLib_Device *device																								);
+WII_LIB_RC		WiiLib_QueryParameter(	WiiLib_Device *device,	WII_LIB_PARAM param																			);
 
 #endif	// __WII_LIB__
