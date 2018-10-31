@@ -129,7 +129,7 @@ I2C_RC I2C_Transmit( I2C_Device *device, uint8_t *data, uint32_t len, BOOL ackRe
 		
 	}
 	
-	I2C_StopTransfer(&device->port, I2C_DELAY_POST_SEND_MS);
+	I2C_StopTransfer(&device->port, device->delayAfterSend_Ms);
 	
 	return returnCode;
 }
@@ -170,7 +170,7 @@ I2C_RC I2C_Receive( I2C_Device *device, uint8_t *data, uint32_t len, BOOL ackMes
 		returnCode = I2C_ReadByte( &device->port, (data + index++), ackMessages );
 	}
 	
-	I2C_StopTransfer(&device->port, I2C_DELAY_POST_READ_MS);
+	I2C_StopTransfer(&device->port, device->delayAfterReceive_Ms);
 	
 	I2CReceiverEnable( device->port.module, FALSE );
 	
@@ -230,12 +230,14 @@ I2C_RC I2C_TxRx( I2C_Device *device, uint8_t *dataTx, uint32_t lenTx, uint8_t *d
 	{	
 		if( useRepeatedStart )
 		{
-			Delay_Ms(I2C_DELAY_BETWEEN_TX_RX_MS);
+			if( device->delayBetweenTxRx_Ms )
+				Delay_Ms(device->delayBetweenTxRx_Ms);
 			while( I2C_StartTransfer(&device->port, TRUE) != I2C_SUCCESS );
 		} else
 		{
-			I2C_StopTransfer(&device->port, I2C_DELAY_POST_SEND_MS);
-			Delay_Ms(I2C_DELAY_BETWEEN_TX_RX_MS);
+			I2C_StopTransfer(&device->port, device->delayAfterSend_Ms);
+			if( device->delayBetweenTxRx_Ms )
+				Delay_Ms(device->delayBetweenTxRx_Ms);
 			while( I2C_StartTransfer(&device->port, FALSE) != I2C_SUCCESS );
 		} 
 		
@@ -251,7 +253,7 @@ I2C_RC I2C_TxRx( I2C_Device *device, uint8_t *dataTx, uint32_t lenTx, uint8_t *d
 		I2CReceiverEnable( device->port.module, FALSE );
 	}	
 	
-	I2C_StopTransfer(&device->port, I2C_DELAY_POST_READ_MS);
+	I2C_StopTransfer(&device->port, device->delayAfterReceive_Ms);
 	
 	return returnCode;
 }

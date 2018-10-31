@@ -81,12 +81,6 @@ typedef enum _I2C_ADDR_LEN
 } I2C_ADDR_LEN;
 
 
-// The following delays are executed prior to raising the stop conditoin on the bus.
-#define	I2C_DELAY_POST_SEND_MS			0										//!< Delay in milliseconds after trasnmitting a payload across the I2C bus.
-#define	I2C_DELAY_POST_READ_MS			10										//!< Delay in milliseconds after reading a payload from the I2C bus.
-#define	I2C_DELAY_BETWEEN_TX_RX_MS		1										//!< Delay in milliseconds between sending a TX request and starting the following RX reqeust to read the reply.
-
-
 
 
 //==================================================================================================
@@ -115,6 +109,9 @@ typedef struct _I2C_Device
 	I2C_MODE							mode;									//!< Mode for I2C device (master, slave, etc.).
 	uint16_t							addr;									//!< Identifier for device (e.g. 0x50).
 	I2C_ADDR_LEN						addrLength;								//!< Length of I2C address format (e.g. 7-bits).
+	uint32_t							delayAfterSend_Ms;						//!< Amount of time (in milliseconds) to optionally delay processing after successful sending a payload over the bus.
+	uint32_t							delayAfterReceive_Ms;					//!< Amount of time (in milliseconds) to optionally delay processing after successful reading a payload from the bus.
+	uint32_t							delayBetweenTxRx_Ms;					//!< Amount of time (in milliseconds) to optionally delay processing within a TxRx request after sending a payload and before reading from the bus.
 } I2C_Device;
 
 

@@ -54,17 +54,22 @@ WII_LIB_RC WiiLib_Init( I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE
 	// should have no harm (in theory/so long as pbClk not different between devices).
 	Delay_Init(pbClk);
 	
-	// Prepare I2C port for communication as a master device.
-	device->i2c.port.config			= I2C_ENABLE_SLAVE_CLOCK_STRETCHING | I2C_STOP_IN_IDLE;
-	device->i2c.port.module			= module;
-	device->i2c.port.clkFreq		= I2C_CLOCK_RATE_STANDARD;
-	device->i2c.port.ackMode		= I2C_ACK_MODE_ACK;
+	// Define I2C port for communication as a master device.
+	device->i2c.port.config				= I2C_ENABLE_SLAVE_CLOCK_STRETCHING | I2C_STOP_IN_IDLE;
+	device->i2c.port.module				= module;
+	device->i2c.port.clkFreq			= I2C_CLOCK_RATE_STANDARD;
+	device->i2c.port.ackMode			= I2C_ACK_MODE_ACK;
+	
+	// Define processing delays for I2C communication.
+	device->i2c.delayAfterSend_Ms		= WII_LIB_I2C_DELAY_POST_SEND_MS;
+	device->i2c.delayAfterReceive_Ms	= WII_LIB_I2C_DELAY_POST_READ_MS;
+	device->i2c.delayBetweenTxRx_Ms		= WII_LIB_I2C_DELAY_BETWEEN_TX_RX_MS;
 	
 	// Define common I2C device characteristics (common for communicating with all supported Wii devices).
-	device->i2c.mode				= I2C_MODE_MASTER;
-	device->i2c.addrLength			= I2C_ADDR_LEN_7_BITS;
-	device->target					= target;
-	device->dataEncrypted			= (uint8_t)!(decryptData);
+	device->i2c.mode					= I2C_MODE_MASTER;
+	device->i2c.addrLength				= I2C_ADDR_LEN_7_BITS;
+	device->target						= target;
+	device->dataEncrypted				= (uint8_t)!(decryptData);
 	
 	// Define device-specific settings.
 	switch(device->target)

@@ -99,6 +99,11 @@ typedef enum _WII_LIB_PARAM
 #define	WII_LIB_DELAY_AFTER_CONNECTION_ATTEMPT_MS	500												//!< Time to delay in milliseconds after a failed connection attempt (before next attempt in the initialization function).
 #define	WII_LIB_DELAY_AFTER_CONFIG_MESSAGE_MS		20												//!< Time to delay in milliseconds after after sending a configuration message to the target.
 
+// The following delays are executed prior to raising the stop conditoin on the bus.
+#define	WII_LIB_I2C_DELAY_POST_SEND_MS				0												//!< Delay in milliseconds after trasnmitting a payload across the I2C bus.
+#define	WII_LIB_I2C_DELAY_POST_READ_MS				10												//!< Delay in milliseconds after reading a payload from the I2C bus.
+#define	WII_LIB_I2C_DELAY_BETWEEN_TX_RX_MS			1												//!< Delay in milliseconds between sending a TX request and starting the following RX reqeust to read the reply.
+
 
 
 
