@@ -12,21 +12,15 @@
 #include "i2c.h"
 #include "wii_lib.h"
 
-/*/ 
-TO DO:
-		-	Wrapper for reading status (0x00)
-		-	Wrapper for finding home/zero position (save to different bytes)
-// */
-
 
 
 
 //==================================================================================================
 //	PRIVATE FUNCTION PROTOTYPES
 //--------------------------------------------------------------------------------------------------
-static WII_LIB_RC				WiiLib_Decrypt(					uint8_t *data,			int8_t len		);
 static WII_LIB_TARGET_DEVICE	WiiLib_DetermineDeviceType(		WiiLib_Device *device					);
 static BOOL						WiiLib_ValidateDataReceived(	uint8_t *data,			uint32_t len	);
+static WII_LIB_RC				WiiLib_Decrypt(					uint8_t *data,			int8_t len		);
 
 
 
@@ -111,12 +105,15 @@ WII_LIB_RC WiiLib_Init( I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//!	@brief			Initializes the Wii target device (e.g. nunchuck).
+//!	@brief			Attempts to connect to target device.
 //!	
 //!	@details		Pushes out initialization messages to target device. If device ack's messages, 
 //!					attempts to validate the target ID. If successful, device is up and running, 
 //!					but before exiting the function, grabs the initial device status (queries 
 //!					WII_LIB_PARAM_STATUS).
+//!	
+//!	@note			Only attempts to connect once. Repeated connectoin attempts (and any desired 
+//!					delays) should be handled by caller.
 //!	
 //!	@param[in]		*device				Instance of 'WiiLib_Device{}' to utilize.
 //!	
@@ -140,7 +137,8 @@ WII_LIB_RC WiiLib_ConnectToTarget( WiiLib_Device *device )
 		return WII_LIB_RC_TARGET_ID_MISMATCH;
 	}
 	
-	return WII_LIB_RC_SUCCESS;
+	// Record current status values from target and use those as the home position for the device.
+	return WiiLib_SetNewHomePosition( device );
 	
 }
 
@@ -261,6 +259,59 @@ WII_LIB_RC WiiLib_QueryParameter( WiiLib_Device *device, WII_LIB_PARAM param )
 }
 
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//!	@brief			Refreshes tracking values for the target device's status bits.
+//!	
+//!	@details		Uses the 'WiiLib_QueryParameter()' to execute a query for 'WII_LIB_PARAM_STATUS' 
+//!					and store the result within the buffer in the 'device->dataCurrent[]' buffer.
+//!	
+//!	@note			This is mainly meant to serve as a simple wrapper to make it easier for app 
+//!					development to not need to know much about the internals of the I2C query 
+//!					process.
+//!	
+//!	@param[in]		*device				Instance of 'WiiLib_Device{}'.
+//!	
+//!	@returns		Return code corresponding to an entry in the 'WII_LIB_RC' enum (zero == success; 
+//!					non-zero == error code). Please see enum definition for details.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+WII_LIB_RC WiiLib_PollStatus( WiiLib_Device *device )
+{
+	return WiiLib_QueryParameter( device, WII_LIB_PARAM_STATUS );
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//!	@brief			Refreshes tracking values for the target device's status bits.
+//!	
+//!	@details		Uses the 'WiiLib_QueryParameter()' to execute a query for 'WII_LIB_PARAM_STATUS' 
+//!					and store the result within the buffer in the 'device->dataBaseline[]' buffer.
+//!	
+//!	@note			This is mainly meant to serve as a simple wrapper to make it easier for app 
+//!					development to not need to know much about the internals of the I2C query 
+//!					process.
+//!	
+//!	@note			This could be handled more efficiently, but presently focused on encapsulation 
+//!					and not too worried about the secondary memcpy() event.
+//!	
+//!	@param[in]		*device				Instance of 'WiiLib_Device{}'.
+//!	
+//!	@returns		Return code corresponding to an entry in the 'WII_LIB_RC' enum (zero == success; 
+//!					non-zero == error code). Please see enum definition for details.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+WII_LIB_RC WiiLib_SetNewHomePosition( WiiLib_Device *device )
+{
+	WII_LIB_RC		returnCode;
+	
+	returnCode = WiiLib_PollStatus( device );
+	
+	if( returnCode == WII_LIB_RC_SUCCESS )
+		memcpy( &device->dataBaseline[0], &device->dataCurrent[0], WII_LIB_MAX_PAYLOAD_SIZE );
+	
+	return returnCode;
+	
+}
+
+
 
 
 //==================================================================================================
@@ -269,9 +320,9 @@ WII_LIB_RC WiiLib_QueryParameter( WiiLib_Device *device, WII_LIB_PARAM param )
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //!	@brief			Handles the process of decrypting data received from a target device.
 //!	
-//!	@details		Queries the device for it's identifier by writing '0xFA' to the target and 
-//!					reading back the 6-byte value. The value is decrypted if necessary before then 
-//!					comparing it against the expected ID values.
+//!	@details		Queries the device for it's identifier by writing 'WII_LIB_PARAM_DEVICE_TYPE' to 
+//!					the target and reading back the 6-byte value. The value is decrypted if 
+//!					necessary before then comparing it against the expected ID values.
 //!	
 //!	@note			Presently, the ID comparison method feels a bit hacky, but working for now 
 //!					(function may be revised later).
@@ -310,30 +361,6 @@ static WII_LIB_TARGET_DEVICE WiiLib_DetermineDeviceType( WiiLib_Device *device )
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//!	@brief			Handles the process of decrypting data received from a target device.
-//!	
-//!	@details		Executes the following to decrypt:
-//!						-	x = (x [xor] 0x17) + 0x17
-//!	
-//!	@param[in]		*data				Pointer to data to decrypt.
-//!	@param[in]		len					Number of bytes of data to decrypt.
-//!	
-//!	@returns		Return code corresponding to an entry in the 'WII_LIB_RC' enum (zero == success; 
-//!					non-zero == error code). Please see enum definition for details.
-////////////////////////////////////////////////////////////////////////////////////////////////////
-static WII_LIB_RC WiiLib_Decrypt( uint8_t *data, int8_t len )
-{
-	for(;len > 0; --len, ++data)
-	{
-		*data = (((*data ^ 0x17) + 0x17) & 0x00FF);
-	}
-	
-	return WII_LIB_RC_SUCCESS;
-	
-}
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
 //!	@brief			Verifies the data provided is not a known set of invalid byte(s).
 //!	
 //!	@details		Confirms data is ready was ready to be read from the target device (did not 
@@ -355,5 +382,29 @@ static BOOL WiiLib_ValidateDataReceived( uint8_t *data, uint32_t len )
 		return FALSE;
 	
 	return TRUE;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//!	@brief			Handles the process of decrypting data received from a target device.
+//!	
+//!	@details		Executes the following to decrypt:
+//!						-	x = (x [xor] 0x17) + 0x17
+//!	
+//!	@param[in]		*data				Pointer to data to decrypt.
+//!	@param[in]		len					Number of bytes of data to decrypt.
+//!	
+//!	@returns		Return code corresponding to an entry in the 'WII_LIB_RC' enum (zero == success; 
+//!					non-zero == error code). Please see enum definition for details.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+static WII_LIB_RC WiiLib_Decrypt( uint8_t *data, int8_t len )
+{
+	for(;len > 0; --len, ++data)
+	{
+		*data = (((*data ^ 0x17) + 0x17) & 0x00FF);
+	}
+	
+	return WII_LIB_RC_SUCCESS;
+	
 }
 
