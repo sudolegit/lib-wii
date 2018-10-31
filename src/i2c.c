@@ -28,6 +28,14 @@
 //==================================================================================================
 //	PRIVATE FUNCTION PROTOTYPES
 //--------------------------------------------------------------------------------------------------
+static I2C_MODULE	m_I2CModules[I2C_NUMBER_OF_MODULES]		= {0};				// Tracking variable used to ensure I2C ports are only initialized once.
+
+
+
+
+//==================================================================================================
+//	PRIVATE FUNCTION PROTOTYPES
+//--------------------------------------------------------------------------------------------------
 static I2C_RC		I2C_StartTransfer(	I2C_Port *port,		BOOL restart					);
 static I2C_RC		I2C_StopTransfer(	I2C_Port *port,		uint32_t delay_Ms				);
 static I2C_RC		I2C_SendByte(		I2C_Port *port,		uint8_t data					);
@@ -47,18 +55,38 @@ static I2C_RC		I2C_SendAddr(		I2C_Device *device,	BOOL isReadRequest				);
 //!										target to initialize and how it should be initialized.
 //!	@param[in]		pbClk				Current peripheral bus clock for device (referenced during 
 //!										I2C initialization).
+//!	@param[in]		force				Boolean flag indicating if port should be reinitialized if 
+//!										already initialized.
 //!	
 //!	@returns		Return code corresponding to an entry in the 'I2C_RC' enum (zero == success; 
 //!					non-zero == error code). Please see enum definition for details.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-I2C_RC I2C_InitPort(I2C_Port *port, uint32_t pbClk)
+I2C_RC I2C_InitPort(I2C_Port *port, uint32_t pbClk, BOOL force)
 {
+	uint8_t			index				= 0;
+	
+	// Ensure ports are only initialized once per boot (unless user explicity requests 
+	// reinitialization).
+	do {
+		if( m_I2CModules[index] == port->module )
+		{
+			if( force )
+				break;
+			else
+				return I2C_RC_SUCCESS;
+		}
+	} while( ++index < I2C_NUMBER_OF_MODULES && m_I2CModules[index] == 0 );
+	
+	// Configure and enable I2C port.
 	I2CEnable(port->module, FALSE);
 	
 	I2CConfigure(port->module, port->config);
 	I2CSetFrequency(port->module, pbClk, port->clkFreq);
 	
 	I2CEnable(port->module, TRUE);
+	
+	// Update storage flags to note that the port has been initialized.
+	m_I2CModules[index] = port->module;
 	
 	return I2C_RC_SUCCESS;
 }

@@ -86,7 +86,7 @@ WII_LIB_RC WiiLib_Init( I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE
 	}
 	
 	// Initialize I2C port and push out settings to initialize device.
-	if( I2C_InitPort(&device->i2c.port, pbClk) != I2C_RC_SUCCESS )
+	if( I2C_InitPort(&device->i2c.port, pbClk, FALSE) != I2C_RC_SUCCESS )
 		return WII_LIB_RC_I2C_ERROR;
 	
 	Delay_Ms(WII_LIB_DELAY_I2C_SETTLE_TIME_MS);
