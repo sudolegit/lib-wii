@@ -7,37 +7,26 @@
 
 
 //==================================================================================================
-// INCLUDES
+//	INCLUDES
 //--------------------------------------------------------------------------------------------------
 #include "i2c.h"
 #include "wii_lib.h"
 
 /*/ 
 TO DO:
-	-	Read bytes func (device, addr, len)
 		-	Wrapper for reading status (0x00)
-		-	Wrapper for reading ID (0xFA)
 		-	Wrapper for finding home/zero position (save to different bytes)
-		**	memset to zero before reading!
-	-	Change TxRx I2C function to opt not to send stop command if desired.
 // */
 
 
 
 
 //==================================================================================================
-// GLOBAL VARIABLES
+//	PRIVATE FUNCTION PROTOTYPES
 //--------------------------------------------------------------------------------------------------
-static	uint8_t							mBuff[WII_LIB_MAX_PAYLOAD_SIZE];		// Buffer used as common sandbox for transmission requests.
-
-
-
-
-//==================================================================================================
-// PRIVATE FUNCTION PROTOTYPES
-//--------------------------------------------------------------------------------------------------
-static WII_LIB_RC				WiiLib_Decrypt(				uint8_t *data,			int8_t len	);
-static WII_LIB_TARGET_DEVICE	WiiLib_DetermineDeviceType(	WiiLib_Device *device				);
+static WII_LIB_RC				WiiLib_Decrypt(					uint8_t *data,			int8_t len		);
+static WII_LIB_TARGET_DEVICE	WiiLib_DetermineDeviceType(		WiiLib_Device *device					);
+static BOOL						WiiLib_ValidateDataReceived(	uint8_t *data,			uint32_t len	);
 
 
 
@@ -137,27 +126,29 @@ WII_LIB_RC WiiLib_Init( I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 WII_LIB_RC WiiLib_ConfigureDevice( WiiLib_Device *device )
 {
+	uint8_t			buff[2];
+	
 	// Initialize in most basic form. This leaves data in an encypted state.
 	if( device->dataEncrypted )
 	{
-		mBuff[0] = 0x40;
-		mBuff[1] = 0x00;
-		if( I2C_Transmit( &device->i2c, &mBuff[0], 2, TRUE ) != I2C_RC_SUCCESS )
+		buff[0] = 0x40;
+		buff[1] = 0x00;
+		if( I2C_Transmit( &device->i2c, &buff[0], 2, TRUE ) != I2C_RC_SUCCESS )
 			return WII_LIB_RC_I2C_ERROR;
 		Delay_Ms(20);
 	}
 	// Initialize such that future data transmitted is no longer encrypted.
 	else
 	{
-		mBuff[0] = 0xF0;
-		mBuff[1] = 0x55;
-		if( I2C_Transmit( &device->i2c, &mBuff[0], 2, TRUE ) == I2C_RC_SUCCESS )
+		buff[0] = 0xF0;
+		buff[1] = 0x55;
+		if( I2C_Transmit( &device->i2c, &buff[0], 2, TRUE ) == I2C_RC_SUCCESS )
 		{
 			Delay_Ms(10);
 			
-			mBuff[0] = 0xFB;
-			mBuff[1] = 0x00;
-			if( I2C_Transmit( &device->i2c, &mBuff[0], 2, TRUE ) != I2C_RC_SUCCESS )
+			buff[0] = 0xFB;
+			buff[1] = 0x00;
+			if( I2C_Transmit( &device->i2c, &buff[0], 2, TRUE ) != I2C_RC_SUCCESS )
 				return WII_LIB_RC_I2C_ERROR;
 			Delay_Ms(20);
 		}
@@ -172,6 +163,76 @@ WII_LIB_RC WiiLib_ConfigureDevice( WiiLib_Device *device )
 }
 
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//!	@brief			Hanldes process of initiating and reading the response for querying a parameter 
+//!					value from the target device.
+//!	
+//!	@details		Verifies the parameter requested is supported [a known parameter] before 
+//!					utilizing temporary buffers to request and read data over the I2C bus. If the 
+//!					data is read correctly (valid reply, decrypted appropriately, etc.), the results 
+//!					are copied into the 'device->dataCurrent[]' before returning success.
+//!	
+//!	@param[in]		*device				Instance of 'WiiLib_Device{}' defining target device 
+//!										interaction.
+//!	@param[in]		param				Parameter value to query. Must match one of the supported 
+//!										values defined in the 'WII_LIB_PARAM{}' enum.
+//!	
+//!	@returns		Return code corresponding to an entry in the 'WII_LIB_RC' enum (zero == success; 
+//!					non-zero == error code). Please see enum definition for details.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+WII_LIB_RC WiiLib_QueryParameter( WiiLib_Device *device, WII_LIB_PARAM param )
+{
+	uint8_t			buffIn[WII_LIB_QUERY_PARAM_REQUEST_LEN]	= { param };
+	uint8_t			buffOut[WII_LIB_MAX_PAYLOAD_SIZE]		= {0};
+	uint32_t		lenIn									= WII_LIB_QUERY_PARAM_REQUEST_LEN;
+	uint32_t		lenOut;
+	
+	// Validate paramter ID provided and define response length (amount to query over I2C bus).
+	switch( param )
+	{
+		case WII_LIB_PARAM_DEVICE_TYPE:
+		case WII_LIB_PARAM_STATUS:
+			lenOut = WII_LIB_PARAM_RESPONSE_LEN_DEFAULT;
+			break;
+		
+		case WII_LIB_PARAM_RAW_DATA:
+			lenOut = WII_LIB_PARAM_RESPONSE_LEN_EXTENDED;
+			break;
+		
+		default:
+			return WII_LIB_RC_UNKOWN_PARAMETER;
+			break;
+	}
+	
+	// Execute I2C query, validate results, and (if necessary) decrypt value(s) received.
+	if( I2C_TxRx( &device->i2c, &buffIn[0], lenIn, &buffOut[0], lenOut, TRUE, FALSE ) == I2C_RC_SUCCESS )
+	{
+		if( !WiiLib_ValidateDataReceived(&buffOut[0], lenOut) )
+			return WII_LIB_RC_DATA_RECEIVED_IS_INVALID;
+		
+		if(device->dataEncrypted)
+		{
+			if( WiiLib_Decrypt( &buffOut[0], WII_LIB_ID_LENGTH ) != WII_LIB_RC_SUCCESS )
+				return WII_LIB_RC_UNABLE_TO_DECRYPT_DATA_RECEIVED;
+		}
+		
+		// Save to store date received. Copy temporary buffer over to destination.
+		memcpy( &device->dataCurrent[0], &buffOut[0], WII_LIB_MAX_PAYLOAD_SIZE );
+		
+		return WII_LIB_RC_SUCCESS;
+		
+	}
+	
+	return WII_LIB_RC_I2C_ERROR;
+	
+}
+
+
+
+
+//==================================================================================================
+//	PRIVATE METHODS
+//--------------------------------------------------------------------------------------------------
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //!	@brief			Handles the process of decrypting data received from a target device.
 //!	
@@ -189,12 +250,8 @@ WII_LIB_RC WiiLib_ConfigureDevice( WiiLib_Device *device )
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 static WII_LIB_TARGET_DEVICE WiiLib_DetermineDeviceType( WiiLib_Device *device )
 {
-	mBuff[0] = 0xFA;
-	if( I2C_TxRx( &device->i2c, &mBuff[0], 1, &device->dataCurrent[0], 6, TRUE, FALSE ) == I2C_RC_SUCCESS )
+	if( WiiLib_QueryParameter( device, WII_LIB_PARAM_DEVICE_TYPE ) == I2C_RC_SUCCESS )
 	{
-		if(device->dataEncrypted)
-			WiiLib_Decrypt( &device->dataCurrent[0], WII_LIB_ID_LENGTH );
-		
 		if( !memcmp( (uint8_t [])WII_LIB_ID_NUNCHUCK,						&device->dataCurrent[0],	WII_LIB_ID_LENGTH ) )
 			return WII_LIB_TARGET_DEVICE_NUNCHUCK;
 		
@@ -241,3 +298,29 @@ static WII_LIB_RC WiiLib_Decrypt( uint8_t *data, int8_t len )
 	return WII_LIB_RC_SUCCESS;
 	
 }
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//!	@brief			Verifies the data provided is not a known set of invalid byte(s).
+//!	
+//!	@details		Confirms data is ready was ready to be read from the target device (did not 
+//!					receive all 0xFF bytes) and returns the result. Long term, any error codes can 
+//!					and should be checked by this function.
+//!	
+//!	@param[in]		*data				Pointer to data to validate.
+//!	@param[in]		len					Number of bytes of data to validate.
+//!	
+//!	@retval			TRUE				Data is valid.
+//!	@retval			TRUE				Data is not valid.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+static BOOL WiiLib_ValidateDataReceived( uint8_t *data, uint32_t len )
+{
+	static uint8_t	notReady[WII_LIB_MAX_PAYLOAD_SIZE]		= { 0xFF };
+	
+	// Confirm data is not all '0xFF' (indicates no data ready to read).
+	if( memcmp( &notReady[0], data, len ) == 0 )
+		return FALSE;
+	
+	return TRUE;
+}
+

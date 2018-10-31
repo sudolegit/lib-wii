@@ -9,7 +9,7 @@
 
 
 //==================================================================================================
-// INCLUDES
+//	INCLUDES
 //--------------------------------------------------------------------------------------------------
 #include <stdint.h>
 #include "i2c.h"
@@ -18,7 +18,7 @@
 
 
 //==================================================================================================
-// CONSTANTS
+//	CONSTANTS
 //--------------------------------------------------------------------------------------------------
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //!	@brief			Enum of return code values.
@@ -29,7 +29,10 @@ typedef enum _WII_LIB_RC
 	WII_LIB_RC_UNSUPPORTED_DEVICE					= 1,											//!< Wii target type presently unsupported.
 	WII_LIB_RC_TARGET_NOT_INITIALIZED				= 2,											//!< Target not initialized.
 	WII_LIB_RC_I2C_ERROR							= 3,											//!< Failed to communicate with device over I2C.
-	WII_LIB_RC_TARGET_ID_MISMATCH					= 4												//!< Value read from target does not match expected value.
+	WII_LIB_RC_TARGET_ID_MISMATCH					= 4,											//!< Value read from target does not match expected value.
+	WII_LIB_RC_UNKOWN_PARAMETER						= 5,											//!< Parameter requested is unknown to this library.
+	WII_LIB_RC_DATA_RECEIVED_IS_INVALID				= 6,											//!< Data received from target device but value(s) is(are) invalid.
+	WII_LIB_RC_UNABLE_TO_DECRYPT_DATA_RECEIVED		= 7												//!< Unable to decrypt data received over I2C.
 } WII_LIB_RC;
 
 
@@ -72,10 +75,28 @@ typedef enum _WII_LIB_I2C_ADDR
 } WII_LIB_I2C_ADDR;
 
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//!	@brief			Defines all known paramters (registers) available for library to read and/or 
+//!					write.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+typedef enum _WII_LIB_PARAM
+{
+	WII_LIB_PARAM_STATUS							= 0x00,											//!< Parameter ID (register address) for querying the status flags from a target device.
+	WII_LIB_PARAM_RAW_DATA							= 0x20,											//!< Parameter ID (register address) for querying raw data from a target dvice.
+	WII_LIB_PARAM_DEVICE_TYPE						= 0xFA											//!< Parameter ID (register address) for querying the device identifier from a target device.
+} WII_LIB_PARAM;
+
+#define	WII_LIB_QUERY_PARAM_REQUEST_LEN				1												//!< Number of bytes to push when starting parameter query.
+
+#define	WII_LIB_PARAM_RESPONSE_LEN_DEFAULT			6												//!< Number of bytes to read for standard [most] parameter queries.
+#define	WII_LIB_PARAM_RESPONSE_LEN_EXTENDED			20												//!< Number of bytes to read for long parameter queries
+
+
+
 
 
 //==================================================================================================
-// TYPEDEFS
+//	TYPEDEFS
 //--------------------------------------------------------------------------------------------------
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //!	@brief			Defines the tracking information used when communicating with Wii targets.
@@ -93,10 +114,10 @@ typedef struct _WiiLib_Device
 
 
 //==================================================================================================
-// PUBLIC FUNCTION PROTOTYPES
+//	PUBLIC FUNCTION PROTOTYPES
 //--------------------------------------------------------------------------------------------------
-WII_LIB_RC		WiiLib_Init(				I2C_MODULE module,	uint32_t pbClk,	WII_LIB_TARGET_DEVICE target,	BOOL decryptData,	WiiLib_Device *device	);
-WII_LIB_RC		WiiLib_ConfigureDevice(		WiiLib_Device *device																							);
-
+WII_LIB_RC		WiiLib_Init(				I2C_MODULE module,		uint32_t pbClk,	WII_LIB_TARGET_DEVICE target,	BOOL decryptData,	WiiLib_Device *device	);
+WII_LIB_RC		WiiLib_ConfigureDevice(		WiiLib_Device *device																								);
+WII_LIB_RC		WiiLib_QueryParameter(		WiiLib_Device *device,	WII_LIB_PARAM param																			);
 
 #endif	// __WII_LIB__
