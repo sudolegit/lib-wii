@@ -101,8 +101,13 @@ WII_LIB_RC WiiLib_Init( I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE
 	{
 		if( connectionAttemptsReamining != WII_LIB_MAX_CONNECTION_ATTEMPTS )
 			Delay_Ms( WII_LIB_DELAY_AFTER_CONNECTION_ATTEMPT_MS );
+		
 		returnCode = WiiLib_ConnectToTarget( device );
-	} while( returnCode != WII_LIB_RC_SUCCESS && returnCode != WII_LIB_RC_TARGET_ID_MISMATCH && (--connectionAttemptsReamining > 0) );	
+		
+		if( returnCode == WII_LIB_RC_SUCCESS || returnCode == WII_LIB_RC_TARGET_ID_MISMATCH )
+			break;
+		
+	} while( --connectionAttemptsReamining );	
 	
 	return returnCode;
 	
@@ -141,6 +146,8 @@ WII_LIB_RC WiiLib_ConnectToTarget( WiiLib_Device *device )
 		device->target	= targetValueRead;
 		return WII_LIB_RC_TARGET_ID_MISMATCH;
 	}
+	
+	Delay_Ms(WII_LIB_DELAY_AFTER_CONFIRM_ID_MS);
 	
 	// Record current status values from target and use those as the home position for the device.
 	return WiiLib_SetNewHomePosition( device );
@@ -220,6 +227,7 @@ WII_LIB_RC WiiLib_QueryParameter( WiiLib_Device *device, WII_LIB_PARAM param )
 {
 	uint8_t			buffIn[WII_LIB_PARAM_REQUEST_LEN]		= { param };
 	uint8_t			buffOut[WII_LIB_MAX_PAYLOAD_SIZE]		= {0};
+	uint8_t			decryptData								= device->dataEncrypted;
 	uint32_t		lenIn									= WII_LIB_PARAM_REQUEST_LEN;
 	uint32_t		lenOut;
 	
@@ -228,7 +236,7 @@ WII_LIB_RC WiiLib_QueryParameter( WiiLib_Device *device, WII_LIB_PARAM param )
 	{
 		case WII_LIB_PARAM_DEVICE_TYPE:
 		case WII_LIB_PARAM_STATUS:
-			lenOut = WII_LIB_PARAM_RESPONSE_LEN_DEFAULT;
+			lenOut		= WII_LIB_PARAM_RESPONSE_LEN_DEFAULT;
 			break;
 		
 		case WII_LIB_PARAM_RAW_DATA:
@@ -244,9 +252,12 @@ WII_LIB_RC WiiLib_QueryParameter( WiiLib_Device *device, WII_LIB_PARAM param )
 	if( I2C_TxRx( &device->i2c, &buffIn[0], lenIn, &buffOut[0], lenOut, TRUE, FALSE ) == I2C_RC_SUCCESS )
 	{
 		if( !WiiLib_ValidateDataReceived(&buffOut[0], lenOut) )
+		{
+			memset( &device->dataCurrent[0], 0, WII_LIB_MAX_PAYLOAD_SIZE );
 			return WII_LIB_RC_DATA_RECEIVED_IS_INVALID;
+		}
 		
-		if(device->dataEncrypted)
+		if( decryptData )
 		{
 			if( WiiLib_Decrypt( &buffOut[0], WII_LIB_ID_LENGTH ) != WII_LIB_RC_SUCCESS )
 				return WII_LIB_RC_UNABLE_TO_DECRYPT_DATA_RECEIVED;
@@ -380,9 +391,10 @@ static WII_LIB_TARGET_DEVICE WiiLib_DetermineDeviceType( WiiLib_Device *device )
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 static BOOL WiiLib_ValidateDataReceived( uint8_t *data, uint32_t len )
 {
-	static uint8_t	notReady[WII_LIB_MAX_PAYLOAD_SIZE]		= { 0xFF };
+	static uint8_t	notReady[WII_LIB_MAX_PAYLOAD_SIZE];
 	
 	// Confirm data is not all '0xFF' (indicates no data ready to read).
+	memset(&notReady[0], 0xFF, WII_LIB_MAX_PAYLOAD_SIZE);
 	if( memcmp( &notReady[0], data, len ) == 0 )
 		return FALSE;
 	

@@ -63,19 +63,10 @@ static I2C_RC		I2C_SendAddr(		I2C_Device *device,	BOOL isReadRequest				);
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 I2C_RC I2C_InitPort(I2C_Port *port, uint32_t pbClk, BOOL force)
 {
-	uint8_t			index				= 0;
-	
 	// Ensure ports are only initialized once per boot (unless user explicity requests 
 	// reinitialization).
-	do {
-		if( m_I2CModules[index] == port->module )
-		{
-			if( force )
-				break;
-			else
-				return I2C_RC_SUCCESS;
-		}
-	} while( ++index < I2C_NUMBER_OF_MODULES && m_I2CModules[index] == 0 );
+	if( m_I2CModules[port->module] > 0 && !force)
+		return I2C_RC_SUCCESS;
 	
 	// Configure and enable I2C port.
 	I2CEnable(port->module, FALSE);
@@ -86,7 +77,7 @@ I2C_RC I2C_InitPort(I2C_Port *port, uint32_t pbClk, BOOL force)
 	I2CEnable(port->module, TRUE);
 	
 	// Update storage flags to note that the port has been initialized.
-	m_I2CModules[index] = port->module;
+	++m_I2CModules[port->module];
 	
 	return I2C_RC_SUCCESS;
 }

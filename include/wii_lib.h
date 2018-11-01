@@ -104,8 +104,8 @@ typedef enum _WII_LIB_PARAM
 //==================================================================================================
 //	CONSTANTS => DELAYS
 //--------------------------------------------------------------------------------------------------
-// Define delay constants used in library.
 #define	WII_LIB_DELAY_I2C_SETTLE_TIME_MS			10												//!< Time to delay in milliseconds after initializing the I2C bus before sending any traffic.
+#define	WII_LIB_DELAY_AFTER_CONFIRM_ID_MS			10												//!< Time to delay in milliseconds after confirming the target device ID and before determining the home position.
 #define	WII_LIB_DELAY_AFTER_CONNECTION_ATTEMPT_MS	500												//!< Time to delay in milliseconds after a failed connection attempt (before next attempt in the initialization function).
 #define	WII_LIB_DELAY_AFTER_CONFIG_MESSAGE_MS		20												//!< Time to delay in milliseconds after after sending a configuration message to the target.
 
@@ -123,6 +123,10 @@ typedef enum _WII_LIB_PARAM
 //--------------------------------------------------------------------------------------------------
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //!	@brief			Defines the tracking information used when communicating with Wii targets.
+//!	
+//!	@note			All data presented has been processed and can be easily indexed by treating it 
+//!					as a structure of bitfields where the corresponding bitfield mapping is defined 
+//!					in the target-specific header file.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 typedef struct _WiiLib_Device
 {
