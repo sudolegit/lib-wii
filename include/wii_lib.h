@@ -16,8 +16,6 @@
 //--------------------------------------------------------------------------------------------------
 #include <stdint.h>
 #include "i2c.h"
-#include "wii_nunchuck.h"
-#include "wii_classic_controller.h"
 
 
 
@@ -127,6 +125,56 @@ typedef enum _WII_LIB_PARAM
 //	TYPEDEFS
 //--------------------------------------------------------------------------------------------------
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+//!	@brief			Used to track the state of a Wii controller's buttons, accel, etc.
+//!	
+//!	@details		Defines every known type of feature across Wii controllers.
+//! 
+//! @note           Wii nunchuck's use a single Z button and have one joystick, however the classic 
+//!                 controller has a left and right version of both. For the purposes of tracking, 
+//!                 a non-sided / generic joystick and z button options are not provided.
+//!	
+//!	@note			Using signed integers to make it easier to do a reltive position tracking array.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+typedef struct _WiiLib_Interface
+{
+	// Discrete Buttons:
+	int8_t								buttonA;								//!< Flag indicating status of A button (pressed == high).
+	int8_t								buttonB;								//!< Flag indicating status of B button (pressed == high).
+	int8_t								buttonC;								//!< Flag indicating status of C button (pressed == high).
+	int8_t								buttonX;								//!< Flag indicating status of X button (pressed == high).
+	int8_t								buttonY;								//!< Flag indicating status of Y button (pressed == high).
+	int8_t								buttonZL;								//!< Flag indicating status of the left  z button (pressed == high).
+	int8_t								buttonZR;								//!< Flag indicating status of the right z button (pressed == high).
+	int8_t								buttonMinus;							//!< Flag indicating status of minus [-] button.
+	int8_t								buttonHome;								//!< Flag indicating status of home button.
+	int8_t								buttonPlus;								//!< Flag indicating status of plus [+] button.
+	// D-Pad Buttons:
+	int8_t								dpadLeft;								//!< Flag indicating status of the left   d-pad button (pressed == high).
+	int8_t								dpadUp;									//!< Flag indicating status of the top    d-pad button (pressed == high).
+	int8_t								dpadRight;								//!< Flag indicating status of the right  d-pad button (pressed == high).
+	int8_t								dpadDown;								//!< Flag indicating status of the bottom d-pad button (pressed == high).
+	// Triggers:
+	int8_t								buttonLeftTrigger;						//!< Flag indicating status of left trigger button.
+	int8_t								buttonRightTrigger;						//!< Flag indicating status of right trigger button.
+	int8_t								triggerLeft;							//!< Value of the left [analog] trigger.
+	int8_t								triggerRight;							//!< Value of the right [analog] trigger.
+	// Analog Joysticks:
+	int16_t								analogLeftX;							//!< Value of the left analog joystick along the x-axis.
+	int16_t								analogLeftY;							//!< Value of the left analog joystick along the y-axis.
+	int16_t								analogRightX;							//!< Value of the right analog joystick along the x-axis.
+	int16_t								analogRightY;							//!< Value of the right analog joystick along the y-axis.
+	// Accelerometers:
+	int16_t								accelX;									//!< Value of the [10-bit] accelerometer along the x-axis.
+	int16_t								accelY;									//!< Value of the [10-bit] accelerometer along the y-axis.
+	int16_t								accelZ;									//!< Value of the [10-bit] accelerometer along the z-axis.
+	// Gyroscopes:
+	int16_t								gyroX;									//!< Value of the gyroscope along the x-axis.
+	int16_t								gyroY;									//!< Value of the gyroscope along the y-axis.
+	int16_t								gyroZ;									//!< Value of the gyroscope along the z-axis.
+} WiiLib_Interface;
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
 //!	@brief			Defines the tracking information used when communicating with Wii targets.
 //!	
 //!	@note			All data presented has been processed and can be easily indexed by treating it 
@@ -139,7 +187,9 @@ typedef struct _WiiLib_Device
 	WII_LIB_TARGET_DEVICE							target;											//!< Target device type intended for communication.
 	uint8_t											dataEncrypted;									//!< Flag indicating if data read is encrypted.
 	uint8_t											dataCurrent[WII_LIB_MAX_PAYLOAD_SIZE];			//!< Payload used when storing the most recently read data in from the target device.
-	uint8_t											dataBaseline[WII_LIB_MAX_PAYLOAD_SIZE];			//!< Payload used when storing the baseline data at boot/initialization (zero-points at boot).
+	WiiLib_Interface								interfaceCurrent;								//!< Instance of most recently read-in status values for interface (buttons, accelerometers, etc.) on the target device.
+	WiiLib_Interface								interfaceHome;									//!< Instance of status values associated with the home position for the interface (buttons, accelerometers, etc.) on the target device.
+	WiiLib_Interface								interfaceRelative;								//!< Relative interface values obtained by taking 'interfaceCurrent' and subtracting 'interfaceHome' for all interface values.
 } WiiLib_Device;
 
 
@@ -154,6 +204,17 @@ WII_LIB_RC		WiiLib_ConfigureDevice(		WiiLib_Device *device																						
 WII_LIB_RC		WiiLib_QueryParameter(		WiiLib_Device *device,	WII_LIB_PARAM param																			);
 WII_LIB_RC		WiiLib_SetNewHomePosition(	WiiLib_Device *device																								);
 WII_LIB_RC		WiiLib_PollStatus(			WiiLib_Device *device																								);
+
+
+
+
+//==================================================================================================
+//	WRAPPER INCLUDES
+//--------------------------------------------------------------------------------------------------
+// Additional includes that may be dependent upon items above but allow this file to be both the 
+// core fiel and single wrapper for the library.
+#include "wii_nunchuck.h"
+#include "wii_classic_controller.h"
 
 
 #endif	// __WII_LIB__
