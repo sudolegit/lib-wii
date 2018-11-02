@@ -66,6 +66,14 @@ WII_LIB_RC WiiLib_Init( I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE
 	device->i2c.delayAfterReceive_Ms	= WII_LIB_I2C_DELAY_POST_READ_MS;
 	device->i2c.delayBetweenTxRx_Ms		= WII_LIB_I2C_DELAY_BETWEEN_TX_RX_MS;
 	
+	// Set flag controlling if relative positioning is enabled (when enabled, automatically 
+	// calculates relative position each time status data is received).
+	#if defined(WII_LIB_DEFAULT_CALCULATE_RELATIVE_POSITION) && WII_LIB_DEFAULT_CALCULATE_RELATIVE_POSITION == TRUE
+	device->calculateRelativePosition	= WiiLib_EnableRelativePosition( device );
+	#else
+	device->calculateRelativePosition	= WiiLib_DisableRelativePosition( device );
+	#endif
+	
 	// Define common I2C device characteristics (common for communicating with all supported Wii devices).
 	device->i2c.mode					= I2C_MODE_MASTER;
 	device->i2c.addrLength				= I2C_ADDR_LEN_7_BITS;
@@ -323,6 +331,9 @@ WII_LIB_RC WiiLib_SetNewHomePosition( WiiLib_Device *device )
 {
 	WII_LIB_RC		returnCode;
 	
+	if( ! device->calculateRelativePosition )
+		return WII_LIB_RC_RELATIVE_POSITION_FEATURE_DISABLED;
+	
 	returnCode = WiiLib_PollStatus( device );
 	
 	if( returnCode == WII_LIB_RC_SUCCESS )
@@ -330,6 +341,44 @@ WII_LIB_RC WiiLib_SetNewHomePosition( WiiLib_Device *device )
 	
 	return returnCode;
 	
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//!	@brief			Simple wrapper to handle enabling of relative positioning.
+//!	
+//!	@note			No values interface tracking values are modified by this function. This function 
+//!					sole aim is to wrap the enable/disable flag for if relative position information 
+//!					is tracked and calculated.
+//!	
+//!	@param[in]		*device				Instance of 'WiiLib_Device{}'.
+//!	
+//!	@returns		Return code corresponding to an entry in the 'WII_LIB_RC' enum (zero == success; 
+//!					non-zero == error code). Please see enum definition for details.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+WII_LIB_RC WiiLib_EnableRelativePosition( WiiLib_Device *device )
+{
+	device->calculateRelativePosition = TRUE;
+	return WII_LIB_RC_SUCCESS;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//!	@brief			Simple wrapper to handle enabling of relative positioning.
+//!	
+//!	@note			No values interface tracking values are modified by this function. This function 
+//!					sole aim is to wrap the enable/disable flag for if relative position information 
+//!					is tracked and calculated.
+//!	
+//!	@param[in]		*device				Instance of 'WiiLib_Device{}'.
+//!	
+//!	@returns		Return code corresponding to an entry in the 'WII_LIB_RC' enum (zero == success; 
+//!					non-zero == error code). Please see enum definition for details.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+WII_LIB_RC WiiLib_DisableRelativePosition( WiiLib_Device *device )
+{
+	device->calculateRelativePosition = FALSE;
+	return WII_LIB_RC_SUCCESS;
 }
 
 
@@ -466,7 +515,7 @@ static WII_LIB_RC WiiLib_UpdateInterfaceTracking( WiiLib_Device *device )
 	}
 	
 	// Calculate relative positioning values.
-	if( returnCode == WII_LIB_RC_SUCCESS )
+	if( returnCode == WII_LIB_RC_SUCCESS && device->calculateRelativePosition )
 	{
 		device->interfaceRelative.triggerLeft	= device->interfaceCurrent.triggerLeft	- device->interfaceHome.triggerLeft;
 		device->interfaceRelative.triggerRight	= device->interfaceCurrent.triggerRight	- device->interfaceHome.triggerRight;

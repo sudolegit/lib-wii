@@ -35,11 +35,14 @@ typedef enum _WII_LIB_RC
 	WII_LIB_RC_TARGET_ID_MISMATCH					= 4,											//!< Value read from target does not match expected value.
 	WII_LIB_RC_UNKOWN_PARAMETER						= 5,											//!< Parameter requested is unknown to this library.
 	WII_LIB_RC_DATA_RECEIVED_IS_INVALID				= 6,											//!< Data received from target device but value(s) is(are) invalid.
-	WII_LIB_RC_UNABLE_TO_DECRYPT_DATA_RECEIVED		= 7												//!< Unable to decrypt data received over I2C.
+	WII_LIB_RC_UNABLE_TO_DECRYPT_DATA_RECEIVED		= 7,											//!< Unable to decrypt data received over I2C.
+	WII_LIB_RC_RELATIVE_POSITION_FEATURE_DISABLED	= 8												//!< Relative positoin feature disabled presently.
 } WII_LIB_RC;
 
 
 #define	WII_LIB_MAX_CONNECTION_ATTEMPTS				5												//!< Maximum number of connectoin attempts to try before presuming device not available. May not exceed 255.
+
+#define	WII_LIB_DEFAULT_CALCULATE_RELATIVE_POSITION	TRUE											//!< Default value for flag controlling whether or not relative position is automatically calculated.
 
 
 
@@ -138,39 +141,39 @@ typedef enum _WII_LIB_PARAM
 typedef struct _WiiLib_Interface
 {
 	// Discrete Buttons:
-	uint8_t								buttonA;								//!< Flag indicating status of A button (pressed == high).
-	uint8_t								buttonB;								//!< Flag indicating status of B button (pressed == high).
-	uint8_t								buttonC;								//!< Flag indicating status of C button (pressed == high).
-	uint8_t								buttonX;								//!< Flag indicating status of X button (pressed == high).
-	uint8_t								buttonY;								//!< Flag indicating status of Y button (pressed == high).
-	uint8_t								buttonZL;								//!< Flag indicating status of the left  z button (pressed == high).
-	uint8_t								buttonZR;								//!< Flag indicating status of the right z button (pressed == high).
-	uint8_t								buttonMinus;							//!< Flag indicating status of minus [-] button.
-	uint8_t								buttonHome;								//!< Flag indicating status of home button.
-	uint8_t								buttonPlus;								//!< Flag indicating status of plus [+] button.
+	uint8_t											buttonA;										//!< Flag indicating status of A button (pressed == high).
+	uint8_t											buttonB;										//!< Flag indicating status of B button (pressed == high).
+	uint8_t											buttonC;										//!< Flag indicating status of C button (pressed == high).
+	uint8_t											buttonX;										//!< Flag indicating status of X button (pressed == high).
+	uint8_t											buttonY;										//!< Flag indicating status of Y button (pressed == high).
+	uint8_t											buttonZL;										//!< Flag indicating status of the left  z button (pressed == high).
+	uint8_t											buttonZR;										//!< Flag indicating status of the right z button (pressed == high).
+	uint8_t											buttonMinus;									//!< Flag indicating status of minus [-] button.
+	uint8_t											buttonHome;										//!< Flag indicating status of home button.
+	uint8_t											buttonPlus;										//!< Flag indicating status of plus [+] button.
 	// D-Pad Buttons:
-	uint8_t								dpadLeft;								//!< Flag indicating status of the left   d-pad button (pressed == high).
-	uint8_t								dpadUp;									//!< Flag indicating status of the top    d-pad button (pressed == high).
-	uint8_t								dpadRight;								//!< Flag indicating status of the right  d-pad button (pressed == high).
-	uint8_t								dpadDown;								//!< Flag indicating status of the bottom d-pad button (pressed == high).
+	uint8_t											dpadLeft;										//!< Flag indicating status of the left   d-pad button (pressed == high).
+	uint8_t											dpadUp;											//!< Flag indicating status of the top    d-pad button (pressed == high).
+	uint8_t											dpadRight;										//!< Flag indicating status of the right  d-pad button (pressed == high).
+	uint8_t											dpadDown;										//!< Flag indicating status of the bottom d-pad button (pressed == high).
 	// Triggers:
-	uint8_t								buttonLeftTrigger;						//!< Flag indicating status of left trigger button.
-	uint8_t								buttonRightTrigger;						//!< Flag indicating status of right trigger button.
-	int8_t								triggerLeft;							//!< Value of the left [analog] trigger.
-	int8_t								triggerRight;							//!< Value of the right [analog] trigger.
+	uint8_t											buttonLeftTrigger;								//!< Flag indicating status of left trigger button.
+	uint8_t											buttonRightTrigger;								//!< Flag indicating status of right trigger button.
+	int8_t											triggerLeft;									//!< Value of the left [analog] trigger.
+	int8_t											triggerRight;									//!< Value of the right [analog] trigger.
 	// Analog Joysticks:
-	int16_t								analogLeftX;							//!< Value of the left analog joystick along the x-axis.
-	int16_t								analogLeftY;							//!< Value of the left analog joystick along the y-axis.
-	int16_t								analogRightX;							//!< Value of the right analog joystick along the x-axis.
-	int16_t								analogRightY;							//!< Value of the right analog joystick along the y-axis.
+	int16_t											analogLeftX;									//!< Value of the left analog joystick along the x-axis.
+	int16_t											analogLeftY;									//!< Value of the left analog joystick along the y-axis.
+	int16_t											analogRightX;									//!< Value of the right analog joystick along the x-axis.
+	int16_t											analogRightY;									//!< Value of the right analog joystick along the y-axis.
 	// Accelerometers:
-	int16_t								accelX;									//!< Value of the [10-bit] accelerometer along the x-axis.
-	int16_t								accelY;									//!< Value of the [10-bit] accelerometer along the y-axis.
-	int16_t								accelZ;									//!< Value of the [10-bit] accelerometer along the z-axis.
+	int16_t											accelX;											//!< Value of the [10-bit] accelerometer along the x-axis.
+	int16_t											accelY;											//!< Value of the [10-bit] accelerometer along the y-axis.
+	int16_t											accelZ;											//!< Value of the [10-bit] accelerometer along the z-axis.
 	// Gyroscopes:
-	int16_t								gyroX;									//!< Value of the gyroscope along the x-axis.
-	int16_t								gyroY;									//!< Value of the gyroscope along the y-axis.
-	int16_t								gyroZ;									//!< Value of the gyroscope along the z-axis.
+	int16_t											gyroX;											//!< Value of the gyroscope along the x-axis.
+	int16_t											gyroY;											//!< Value of the gyroscope along the y-axis.
+	int16_t											gyroZ;											//!< Value of the gyroscope along the z-axis.
 } WiiLib_Interface;
 
 
@@ -186,6 +189,7 @@ typedef struct _WiiLib_Device
 	I2C_Device										i2c;											//!< I2C device information. Used when communicating with Wii device over I2C.
 	WII_LIB_TARGET_DEVICE							target;											//!< Target device type intended for communication.
 	uint8_t											dataEncrypted;									//!< Flag indicating if data read is encrypted.
+	uint8_t											calculateRelativePosition;						//!< Flag inidicating if the relative position values should be calculated (defaults to 'WII_LIB_DEFAULT_CALCULATE_RELATIVE_POSITION').
 	uint8_t											dataCurrent[WII_LIB_MAX_PAYLOAD_SIZE];			//!< Payload used when storing the most recently read data in from the target device.
 	WiiLib_Interface								interfaceCurrent;								//!< Instance of most recently read-in status values for interface (buttons, accelerometers, etc.) on the target device.
 	WiiLib_Interface								interfaceHome;									//!< Instance of status values associated with the home position for the interface (buttons, accelerometers, etc.) on the target device.
@@ -198,12 +202,14 @@ typedef struct _WiiLib_Device
 //==================================================================================================
 //	PUBLIC FUNCTION PROTOTYPES
 //--------------------------------------------------------------------------------------------------
-WII_LIB_RC		WiiLib_Init(				I2C_MODULE module,		uint32_t pbClk,	WII_LIB_TARGET_DEVICE target,	BOOL decryptData,	WiiLib_Device *device	);
-WII_LIB_RC		WiiLib_ConnectToTarget(		WiiLib_Device *device 																								);
-WII_LIB_RC		WiiLib_ConfigureDevice(		WiiLib_Device *device																								);
-WII_LIB_RC		WiiLib_QueryParameter(		WiiLib_Device *device,	WII_LIB_PARAM param																			);
-WII_LIB_RC		WiiLib_SetNewHomePosition(	WiiLib_Device *device																								);
-WII_LIB_RC		WiiLib_PollStatus(			WiiLib_Device *device																								);
+WII_LIB_RC		WiiLib_Init(					I2C_MODULE module,		uint32_t pbClk,	WII_LIB_TARGET_DEVICE target,	BOOL decryptData,	WiiLib_Device *device	);
+WII_LIB_RC		WiiLib_ConnectToTarget(			WiiLib_Device *device 																								);
+WII_LIB_RC		WiiLib_ConfigureDevice(			WiiLib_Device *device																								);
+WII_LIB_RC		WiiLib_QueryParameter(			WiiLib_Device *device,	WII_LIB_PARAM param																			);
+WII_LIB_RC		WiiLib_SetNewHomePosition(		WiiLib_Device *device																								);
+WII_LIB_RC		WiiLib_PollStatus(				WiiLib_Device *device																								);
+WII_LIB_RC		WiiLib_EnableRelativePosition(	WiiLib_Device *device 																								);
+WII_LIB_RC		WiiLib_DisableRelativePosition(	WiiLib_Device *device 																								);
 
 
 
