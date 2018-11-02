@@ -138,24 +138,24 @@ typedef enum _WII_LIB_PARAM
 typedef struct _WiiLib_Interface
 {
 	// Discrete Buttons:
-	int8_t								buttonA;								//!< Flag indicating status of A button (pressed == high).
-	int8_t								buttonB;								//!< Flag indicating status of B button (pressed == high).
-	int8_t								buttonC;								//!< Flag indicating status of C button (pressed == high).
-	int8_t								buttonX;								//!< Flag indicating status of X button (pressed == high).
-	int8_t								buttonY;								//!< Flag indicating status of Y button (pressed == high).
-	int8_t								buttonZL;								//!< Flag indicating status of the left  z button (pressed == high).
-	int8_t								buttonZR;								//!< Flag indicating status of the right z button (pressed == high).
-	int8_t								buttonMinus;							//!< Flag indicating status of minus [-] button.
-	int8_t								buttonHome;								//!< Flag indicating status of home button.
-	int8_t								buttonPlus;								//!< Flag indicating status of plus [+] button.
+	uint8_t								buttonA;								//!< Flag indicating status of A button (pressed == high).
+	uint8_t								buttonB;								//!< Flag indicating status of B button (pressed == high).
+	uint8_t								buttonC;								//!< Flag indicating status of C button (pressed == high).
+	uint8_t								buttonX;								//!< Flag indicating status of X button (pressed == high).
+	uint8_t								buttonY;								//!< Flag indicating status of Y button (pressed == high).
+	uint8_t								buttonZL;								//!< Flag indicating status of the left  z button (pressed == high).
+	uint8_t								buttonZR;								//!< Flag indicating status of the right z button (pressed == high).
+	uint8_t								buttonMinus;							//!< Flag indicating status of minus [-] button.
+	uint8_t								buttonHome;								//!< Flag indicating status of home button.
+	uint8_t								buttonPlus;								//!< Flag indicating status of plus [+] button.
 	// D-Pad Buttons:
-	int8_t								dpadLeft;								//!< Flag indicating status of the left   d-pad button (pressed == high).
-	int8_t								dpadUp;									//!< Flag indicating status of the top    d-pad button (pressed == high).
-	int8_t								dpadRight;								//!< Flag indicating status of the right  d-pad button (pressed == high).
-	int8_t								dpadDown;								//!< Flag indicating status of the bottom d-pad button (pressed == high).
+	uint8_t								dpadLeft;								//!< Flag indicating status of the left   d-pad button (pressed == high).
+	uint8_t								dpadUp;									//!< Flag indicating status of the top    d-pad button (pressed == high).
+	uint8_t								dpadRight;								//!< Flag indicating status of the right  d-pad button (pressed == high).
+	uint8_t								dpadDown;								//!< Flag indicating status of the bottom d-pad button (pressed == high).
 	// Triggers:
-	int8_t								buttonLeftTrigger;						//!< Flag indicating status of left trigger button.
-	int8_t								buttonRightTrigger;						//!< Flag indicating status of right trigger button.
+	uint8_t								buttonLeftTrigger;						//!< Flag indicating status of left trigger button.
+	uint8_t								buttonRightTrigger;						//!< Flag indicating status of right trigger button.
 	int8_t								triggerLeft;							//!< Value of the left [analog] trigger.
 	int8_t								triggerRight;							//!< Value of the right [analog] trigger.
 	// Analog Joysticks:

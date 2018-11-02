@@ -30,7 +30,7 @@
 //!	@returns		Return code corresponding to an entry in the 'WII_LIB_RC' enum (zero == success; 
 //!					non-zero == error code). Please see enum definition for details.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WII_LIB_RC WiiNunchuck_ProcessStatusParam(WiiLib_Device *device)
+WII_LIB_RC WiiClassic_ProcessStatusParam(WiiLib_Device *device)
 {
 	switch( device->target )
 	{

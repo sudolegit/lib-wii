@@ -21,6 +21,7 @@
 static WII_LIB_TARGET_DEVICE	WiiLib_DetermineDeviceType(		WiiLib_Device *device					);
 static BOOL						WiiLib_ValidateDataReceived(	uint8_t *data,			uint32_t len	);
 static WII_LIB_RC				WiiLib_Decrypt(					uint8_t *data,			int8_t len		);
+static WII_LIB_RC				WiiLib_UpdateInterfaceTracking(	WiiLib_Device *device					);
 
 
 
@@ -266,6 +267,10 @@ WII_LIB_RC WiiLib_QueryParameter( WiiLib_Device *device, WII_LIB_PARAM param )
 		// Save to store date received. Copy temporary buffer over to destination.
 		memcpy( &device->dataCurrent[0], &buffOut[0], WII_LIB_MAX_PAYLOAD_SIZE );
 		
+		// Process data to infer the state of the user interface if query was for status:
+		if( param == WII_LIB_PARAM_STATUS )
+			return WiiLib_UpdateInterfaceTracking( device );
+		
 		return WII_LIB_RC_SUCCESS;
 		
 	}
@@ -339,9 +344,6 @@ WII_LIB_RC WiiLib_SetNewHomePosition( WiiLib_Device *device )
 //!	@details		Queries the device for it's identifier by writing 'WII_LIB_PARAM_DEVICE_TYPE' to 
 //!					the target and reading back the 6-byte value. The value is decrypted if 
 //!					necessary before then comparing it against the expected ID values.
-//!	
-//!	@note			Presently, the ID comparison method feels a bit hacky, but working for now 
-//!					(function may be revised later).
 //!	
 //!	@param[in]		*device				Instance of 'WiiLib_Device{}'.
 //!	
@@ -422,6 +424,65 @@ static WII_LIB_RC WiiLib_Decrypt( uint8_t *data, int8_t len )
 	}
 	
 	return WII_LIB_RC_SUCCESS;
+	
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//!	@brief			Wrapper to invoke the appropriate target-specific processing function to 
+//!					interpret the current status data.
+//!	
+//!	@note			Presumes data available in 'device->dataCurrent[]' is a valid payload from 
+//!					querying status data.
+//!	
+//!	@param[in]		*device				Instance of 'WiiLib_Device{}'.
+//!	
+//!	@returns		Entry from 'WII_LIB_TARGET_DEVICE{}' that represents the target device 
+//!					determined.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+static WII_LIB_RC WiiLib_UpdateInterfaceTracking( WiiLib_Device *device )
+{
+	WII_LIB_RC		returnCode;
+	
+	switch(device->target)
+	{
+		case WII_LIB_TARGET_DEVICE_NUNCHUCK:
+		case WII_LIB_TARGET_DEVICE_MOTION_PLUS_PASS_NUNCHUCK:
+			returnCode = WiiNunchuck_ProcessStatusParam( device );
+			break;
+		
+		case WII_LIB_TARGET_DEVICE_CLASSIC_CONTROLLER:
+		case WII_LIB_TARGET_DEVICE_MOTION_PLUS_PASS_CLASSIC:
+			returnCode = WiiClassic_ProcessStatusParam( device );
+			break;
+		
+		case WII_LIB_TARGET_DEVICE_MOTION_PLUS:
+			// DEVELOPMENT NEEDED.
+			break;
+		
+		default:
+			return WII_LIB_RC_UNSUPPORTED_DEVICE;
+		
+	}
+	
+	// Calculate relative positioning values.
+	if( returnCode == WII_LIB_RC_SUCCESS )
+	{
+		device->interfaceRelative.triggerLeft	= device->interfaceCurrent.triggerLeft	- device->interfaceHome.triggerLeft;
+		device->interfaceRelative.triggerRight	= device->interfaceCurrent.triggerRight	- device->interfaceHome.triggerRight;
+		device->interfaceRelative.analogLeftX	= device->interfaceCurrent.analogLeftX	- device->interfaceHome.analogLeftX;
+		device->interfaceRelative.analogLeftY	= device->interfaceCurrent.analogLeftY	- device->interfaceHome.analogLeftY;
+		device->interfaceRelative.analogRightX	= device->interfaceCurrent.analogRightX	- device->interfaceHome.analogRightX;
+		device->interfaceRelative.analogRightY	= device->interfaceCurrent.analogRightY	- device->interfaceHome.analogRightY;
+		device->interfaceRelative.accelX		= device->interfaceCurrent.accelX		- device->interfaceHome.accelX;
+		device->interfaceRelative.accelY		= device->interfaceCurrent.accelY		- device->interfaceHome.accelY;
+		device->interfaceRelative.accelZ		= device->interfaceCurrent.accelZ		- device->interfaceHome.accelZ;
+		device->interfaceRelative.gyroX			= device->interfaceCurrent.gyroX		- device->interfaceHome.gyroX;
+		device->interfaceRelative.gyroY			= device->interfaceCurrent.gyroY		- device->interfaceHome.gyroY;
+		device->interfaceRelative.gyroZ			= device->interfaceCurrent.gyroZ		- device->interfaceHome.gyroZ;
+	}
+	
+	return returnCode;
 	
 }
 
