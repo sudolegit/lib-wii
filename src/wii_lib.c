@@ -243,8 +243,12 @@ WII_LIB_RC WiiLib_QueryParameter( WiiLib_Device *device, WII_LIB_PARAM param )
 	// Validate paramter ID provided and define response length (amount to query over I2C bus).
 	switch( param )
 	{
-		case WII_LIB_PARAM_DEVICE_TYPE:
 		case WII_LIB_PARAM_STATUS:
+			// HACK:	Presently we need to push the configuration data out each time we communicate 
+			//			with the classic controller. Handling this automatically for status data queries.
+			if( device->target == WII_LIB_TARGET_DEVICE_CLASSIC_CONTROLLER || device->target == WII_LIB_TARGET_DEVICE_MOTION_PLUS_PASS_CLASSIC )
+				WiiLib_ConfigureDevice(device);
+		case WII_LIB_PARAM_DEVICE_TYPE:
 			lenOut		= WII_LIB_PARAM_RESPONSE_LEN_DEFAULT;
 			break;
 		
