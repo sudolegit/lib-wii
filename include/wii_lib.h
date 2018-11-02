@@ -3,6 +3,9 @@
 //!	
 //!	@brief			Defines public constants, macros, and constant functions available for the "wii" 
 //!					library module.
+//!	
+//!	@note			This is the core header file for the Wii library support (includes all other 
+//!					"wii_...h" header files).
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #ifndef __WII_LIB__
 #define	__WII_LIB__
@@ -13,6 +16,8 @@
 //--------------------------------------------------------------------------------------------------
 #include <stdint.h>
 #include "i2c.h"
+#include "wii_nunchuck.h"
+#include "wii_classic_controller.h"
 
 
 
