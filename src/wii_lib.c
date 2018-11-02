@@ -69,7 +69,7 @@ WII_LIB_RC WiiLib_Init( I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE
 	// Set flag controlling if relative positioning is enabled (when enabled, automatically 
 	// calculates relative position each time status data is received).
 	#if defined(WII_LIB_DEFAULT_CALCULATE_RELATIVE_POSITION) && WII_LIB_DEFAULT_CALCULATE_RELATIVE_POSITION == TRUE
-	device->calculateRelativePosition	= WiiLib_EnableRelativePosition( device );
+	WiiLib_EnableRelativePosition( device );
 	#else
 	device->calculateRelativePosition	= WiiLib_DisableRelativePosition( device );
 	#endif
@@ -521,6 +521,8 @@ static WII_LIB_RC WiiLib_UpdateInterfaceTracking( WiiLib_Device *device )
 	// Calculate relative positioning values.
 	if( returnCode == WII_LIB_RC_SUCCESS && device->calculateRelativePosition )
 	{
+		memcpy( (void*)&device->interfaceRelative, (void*)&device->interfaceHome, WII_LIB_MAX_PAYLOAD_SIZE );
+		
 		device->interfaceRelative.triggerLeft	= device->interfaceCurrent.triggerLeft	- device->interfaceHome.triggerLeft;
 		device->interfaceRelative.triggerRight	= device->interfaceCurrent.triggerRight	- device->interfaceHome.triggerRight;
 		device->interfaceRelative.analogLeftX	= device->interfaceCurrent.analogLeftX	- device->interfaceHome.analogLeftX;

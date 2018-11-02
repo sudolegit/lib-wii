@@ -42,8 +42,8 @@ WII_LIB_RC WiiNunchuck_ProcessStatusParam(WiiLib_Device *device)
 		{
 			WiiNunchuck_StatusNormal	*bitfields	= (WiiNunchuck_StatusNormal*)&device->dataCurrent[0];
 			
-			device->interfaceCurrent.buttonC			= (~bitfields->buttonC);
-			device->interfaceCurrent.buttonZL			= (~bitfields->buttonZ);
+			device->interfaceCurrent.buttonC			= !(bitfields->buttonC);
+			device->interfaceCurrent.buttonZL			= !(bitfields->buttonZ);
 			device->interfaceCurrent.analogLeftX		= bitfields->analogX;
 			device->interfaceCurrent.analogLeftY		= bitfields->analogY;
 			device->interfaceCurrent.accelX				= ( (bitfields->accelXHigh << 2) | (bitfields->accelXLow & 0x03) );
@@ -56,8 +56,8 @@ WII_LIB_RC WiiNunchuck_ProcessStatusParam(WiiLib_Device *device)
 		{
 			WiiNunchuck_StatusPassThrough	*bitfields	= (WiiNunchuck_StatusPassThrough*)&device->dataCurrent[0];
 			
-			device->interfaceCurrent.buttonC			= (~bitfields->buttonC);
-			device->interfaceCurrent.buttonZL			= (~bitfields->buttonZ);
+			device->interfaceCurrent.buttonC			= !(bitfields->buttonC);
+			device->interfaceCurrent.buttonZL			= !(bitfields->buttonZ);
 			device->interfaceCurrent.analogLeftX		= bitfields->analogX;
 			device->interfaceCurrent.analogLeftY		= bitfields->analogY;
 			device->interfaceCurrent.accelX				= ( (bitfields->accelXHigh << 2)			| ((bitfields->accelXLow & 0x01) << 1)	);
