@@ -341,7 +341,7 @@ WII_LIB_RC WiiLib_SetNewHomePosition( WiiLib_Device *device )
 	returnCode = WiiLib_PollStatus( device );
 	
 	if( returnCode == WII_LIB_RC_SUCCESS )
-		memcpy( (void *)&device->interfaceHome, (void *)&device->interfaceCurrent, WII_LIB_MAX_PAYLOAD_SIZE );
+		memcpy( (void *)&device->interfaceHome, (void *)&device->interfaceCurrent, sizeof(WiiLib_Device) );
 	
 	return returnCode;
 	
