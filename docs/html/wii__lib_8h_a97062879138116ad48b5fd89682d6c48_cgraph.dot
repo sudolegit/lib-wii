@@ -1,0 +1,23 @@
+digraph "WiiLib_SetNewHomePosition"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node67 [label="WiiLib_SetNewHomePosition",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node67 -> Node68 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node68 [label="WiiLib_PollStatus",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$wii__lib_8c.html#ae4aaae06500be0c8bfb9b12f05752f48",tooltip="Refreshes tracking values for the target device&#39;s status bits. "];
+  Node68 -> Node69 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node69 [label="WiiLib_QueryParameter",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$wii__lib_8c.html#a3f1a4a0b9edfea52390b8bf07a9fef1f",tooltip="Hanldes process of initiating and reading the response for querying a parameter value from the target..."];
+  Node69 -> Node70 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node70 [label="WiiLib_ConfigureDevice",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$wii__lib_8c.html#a142d45ef18cbb69d8ffd2cfac5f591a5",tooltip="Pushes out configuration to target device. "];
+  Node69 -> Node71 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node71 [label="WiiLib_ValidateDataReceived",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$wii__lib_8c.html#a975203344b3223270889adfe8bc28b14",tooltip="Verifies the data provided is not a known set of invalid byte(s). "];
+  Node69 -> Node72 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node72 [label="WiiLib_Decrypt",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$wii__lib_8c.html#aa69c759411925b0982a02da32c85890e",tooltip="Handles the process of decrypting data received from a target device. "];
+  Node69 -> Node73 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node73 [label="WiiLib_UpdateInterfaceTracking",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$wii__lib_8c.html#aad241b45d69099b34e33ce9d56f8ecdd",tooltip="Wrapper to invoke the appropriate target-specific processing function to interpret the current status..."];
+  Node73 -> Node74 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node74 [label="WiiNunchuck_ProcessStatus\lParam",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$wii__nunchuck_8h.html#a95d02a5f70eb0bfffd18905387e78798",tooltip="Process current data for device as the response field from querying the device status register..."];
+  Node73 -> Node75 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node75 [label="WiiClassic_ProcessStatus\lParam",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$wii__classic__controller_8h.html#a2673480b21c4f614e98006199179c6ea",tooltip="Process current data for device as the response field from querying the device status register..."];
+}

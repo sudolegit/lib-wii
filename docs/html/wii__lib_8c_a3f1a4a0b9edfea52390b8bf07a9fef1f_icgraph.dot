@@ -1,0 +1,18 @@
+digraph "WiiLib_QueryParameter"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node80 [label="WiiLib_QueryParameter",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node80 -> Node81 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node81 [label="WiiLib_PollStatus",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$wii__lib_8c.html#ae4aaae06500be0c8bfb9b12f05752f48",tooltip="Refreshes tracking values for the target device&#39;s status bits. "];
+  Node81 -> Node82 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node82 [label="WiiLib_SetNewHomePosition",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$wii__lib_8c.html#a97062879138116ad48b5fd89682d6c48",tooltip="Refreshes tracking values for the target device&#39;s status bits. "];
+  Node82 -> Node83 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node83 [label="WiiLib_ConnectToTarget",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$wii__lib_8c.html#a351e727ad63aec8dd05b8209ffa44adf",tooltip="Attempts to connect to target device. "];
+  Node83 -> Node84 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node84 [label="WiiLib_Init",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$wii__lib_8c.html#a39366dd2388ce824b8307ea8158eab1d",tooltip="Initializes the Wii target device (e.g. nunchuck). "];
+  Node80 -> Node85 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node85 [label="WiiLib_DetermineDeviceType",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$wii__lib_8c.html#a88416ab373070607a6f41dee57f2d517",tooltip="Handles the process of decrypting data received from a target device. "];
+  Node85 -> Node83 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+}

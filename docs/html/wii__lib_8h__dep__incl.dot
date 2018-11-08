@@ -1,0 +1,18 @@
+digraph "wii_lib.h"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node5 [label="wii_lib.h",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node5 -> Node6 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node6 [label="wii_classic_controller.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$wii__classic__controller_8h.html",tooltip="Defines public constants, macros, and constant functions available for the \"wii                  clas..."];
+  Node6 -> Node5 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node6 -> Node7 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node7 [label="wii_classic_controller.c",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$wii__classic__controller_8c.html",tooltip="Implements functions used to interpret data read from a Wii classic controller device. "];
+  Node5 -> Node8 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node8 [label="wii_nunchuck.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$wii__nunchuck_8h.html",tooltip="Defines public constants, macros, and constant functions available for the \"wii                  nunc..."];
+  Node8 -> Node5 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node8 -> Node9 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node9 [label="wii_nunchuck.c",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$wii__nunchuck_8c.html",tooltip="Implements functions used to interpret data read from a Wii nunchuck device. "];
+  Node5 -> Node10 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node10 [label="wii_lib.c",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$wii__lib_8c.html",tooltip="Implements functions used to abstract away interacting with Wii devices over I2C. ..."];
+}

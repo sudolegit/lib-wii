@@ -1,0 +1,11 @@
+digraph "WiiLib_DetermineDeviceType"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node37 [label="WiiLib_DetermineDeviceType",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node37 -> Node38 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node38 [label="WiiLib_ConnectToTarget",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$wii__lib_8c.html#a351e727ad63aec8dd05b8209ffa44adf",tooltip="Attempts to connect to target device. "];
+  Node38 -> Node39 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node39 [label="WiiLib_Init",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$wii__lib_8c.html#a39366dd2388ce824b8307ea8158eab1d",tooltip="Initializes the Wii target device (e.g. nunchuck). "];
+}

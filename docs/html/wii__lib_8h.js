@@ -1,0 +1,67 @@
+var wii__lib_8h =
+[
+    [ "_WiiLib_Interface", "struct___wii_lib___interface.html", "struct___wii_lib___interface" ],
+    [ "_WiiLib_Device", "struct___wii_lib___device.html", "struct___wii_lib___device" ],
+    [ "WII_LIB_DEFAULT_CALCULATE_RELATIVE_POSITION", "wii__lib_8h.html#a054ac0265ac1de9e0f71d053b0db308d", null ],
+    [ "WII_LIB_DELAY_AFTER_CONFIG_MESSAGE_MS", "wii__lib_8h.html#a0da7413ce13aeaf523ef1df5bfa016e2", null ],
+    [ "WII_LIB_DELAY_AFTER_CONFIRM_ID_MS", "wii__lib_8h.html#a7035d27ad23f4ca89f39e630d08cfb6c", null ],
+    [ "WII_LIB_DELAY_AFTER_CONNECTION_ATTEMPT_MS", "wii__lib_8h.html#a78d7295a1a5a2bcf47a5e7f09e13533e", null ],
+    [ "WII_LIB_DELAY_I2C_SETTLE_TIME_MS", "wii__lib_8h.html#a2a994fbcccaa6c5119b2da985b0fc7fb", null ],
+    [ "WII_LIB_I2C_DELAY_BETWEEN_TX_RX_MS", "wii__lib_8h.html#a582cfda304420e93251ea44f7ae40b9c", null ],
+    [ "WII_LIB_I2C_DELAY_POST_READ_MS", "wii__lib_8h.html#a3d584551c5f975c30fb1bd4377a950dd", null ],
+    [ "WII_LIB_I2C_DELAY_POST_SEND_MS", "wii__lib_8h.html#ad5ce54c7391b4184b6dd992cecc6c947", null ],
+    [ "WII_LIB_ID_CLASSIC_CONTROLLER", "wii__lib_8h.html#a1c431c7a97c53000af050a1a85384075", null ],
+    [ "WII_LIB_ID_LENGTH", "wii__lib_8h.html#a9964b4a5200c60c9114725a70b59a4fa", null ],
+    [ "WII_LIB_ID_NUNCHUCK", "wii__lib_8h.html#a1d05c484fcbec909dfb78648f8384757", null ],
+    [ "WII_LIB_ID_WII_MOTION_PLUS", "wii__lib_8h.html#ab4809f586648fec5221cfa55f718bbff", null ],
+    [ "WII_LIB_ID_WII_MOTION_PLUS_PASS_CLASSIC", "wii__lib_8h.html#ab3300ac24bbd7b98d7a427b7da0b23e9", null ],
+    [ "WII_LIB_ID_WII_MOTION_PLUS_PASS_NUNCHUCK", "wii__lib_8h.html#aa53e761e4e35d930073124412bb96572", null ],
+    [ "WII_LIB_MAX_CONNECTION_ATTEMPTS", "wii__lib_8h.html#a7223ef4662456f8ba25ffc2493657918", null ],
+    [ "WII_LIB_MAX_PAYLOAD_SIZE", "wii__lib_8h.html#a8319d7118c5bb2249c2a4c525e3381d9", null ],
+    [ "WII_LIB_PARAM_REQUEST_LEN", "wii__lib_8h.html#ac31f36f73219f54d73390f1aa4a8bc72", null ],
+    [ "WII_LIB_PARAM_RESPONSE_LEN_DEFAULT", "wii__lib_8h.html#a0ea06c5d36a5285e0fe8dc7d227fbbe9", null ],
+    [ "WII_LIB_PARAM_RESPONSE_LEN_EXTENDED", "wii__lib_8h.html#af6014958bf78dc4d8f5353f5a4c0e194", null ],
+    [ "WII_LIB_I2C_ADDR", "wii__lib_8h.html#a446ebd0f5d075bd9459dc7e2a21f8210", null ],
+    [ "WII_LIB_PARAM", "wii__lib_8h.html#a58a6ebe9b45f82cd1a973f2b83dfcf70", null ],
+    [ "WII_LIB_RC", "wii__lib_8h.html#ad1e7b3ff86d03947a332cd82be615a02", null ],
+    [ "WII_LIB_TARGET_DEVICE", "wii__lib_8h.html#ac6864ade60c65429fd5ab9740930d08c", null ],
+    [ "WiiLib_Device", "wii__lib_8h.html#a90cbcd881a70e1fde0306efb5228fdf3", null ],
+    [ "WiiLib_Interface", "wii__lib_8h.html#ae04fa9e07e60b2812a6070f7333301b8", null ],
+    [ "_WII_LIB_I2C_ADDR", "wii__lib_8h.html#a46bdb0edbb3b3abc1c802693b5640ce7", [
+      [ "WII_LIB_I2C_ADDR_STANDARD", "wii__lib_8h.html#a46bdb0edbb3b3abc1c802693b5640ce7a9d9187b5102a024ac3da1f7ba5134acd", null ],
+      [ "WII_LIB_I2C_ADDR_WII_MOTION_PLUS", "wii__lib_8h.html#a46bdb0edbb3b3abc1c802693b5640ce7a45ab2fcc22e4232fe16f841eca4e526f", null ]
+    ] ],
+    [ "_WII_LIB_PARAM", "wii__lib_8h.html#ae1aa8db90cca18e54eddcdcbc2e381d8", [
+      [ "WII_LIB_PARAM_STATUS", "wii__lib_8h.html#ae1aa8db90cca18e54eddcdcbc2e381d8aeb56455184c728aa334d653855c9d568", null ],
+      [ "WII_LIB_PARAM_RAW_DATA", "wii__lib_8h.html#ae1aa8db90cca18e54eddcdcbc2e381d8a8b73f10d5516d64e2f013339765ac486", null ],
+      [ "WII_LIB_PARAM_DEVICE_TYPE", "wii__lib_8h.html#ae1aa8db90cca18e54eddcdcbc2e381d8aa198713474877352c231189aa8cc74e9", null ]
+    ] ],
+    [ "_WII_LIB_RC", "wii__lib_8h.html#a8d9081e875654a64ec171f6337e12e59", [
+      [ "WII_LIB_RC_SUCCESS", "wii__lib_8h.html#a8d9081e875654a64ec171f6337e12e59ae57241a32248e11a5aece61c3148e9da", null ],
+      [ "WII_LIB_RC_UNSUPPORTED_DEVICE", "wii__lib_8h.html#a8d9081e875654a64ec171f6337e12e59a8dfeedfae973ada81b0170de5b927a91", null ],
+      [ "WII_LIB_RC_TARGET_NOT_INITIALIZED", "wii__lib_8h.html#a8d9081e875654a64ec171f6337e12e59a263ac57582312261ae1d66d534682652", null ],
+      [ "WII_LIB_RC_I2C_ERROR", "wii__lib_8h.html#a8d9081e875654a64ec171f6337e12e59a6a6fd84465a37ab341b41551364de192", null ],
+      [ "WII_LIB_RC_TARGET_ID_MISMATCH", "wii__lib_8h.html#a8d9081e875654a64ec171f6337e12e59ab045ced59ebc4f74d5bc005a8f47462b", null ],
+      [ "WII_LIB_RC_UNKOWN_PARAMETER", "wii__lib_8h.html#a8d9081e875654a64ec171f6337e12e59a5ddeb53c0571ac72e83bc55f7850226d", null ],
+      [ "WII_LIB_RC_DATA_RECEIVED_IS_INVALID", "wii__lib_8h.html#a8d9081e875654a64ec171f6337e12e59a3a90ed8a779506d436cacb20d9e2b84e", null ],
+      [ "WII_LIB_RC_UNABLE_TO_DECRYPT_DATA_RECEIVED", "wii__lib_8h.html#a8d9081e875654a64ec171f6337e12e59af395cb82754cd343e2a880125b8b2df2", null ],
+      [ "WII_LIB_RC_RELATIVE_POSITION_FEATURE_DISABLED", "wii__lib_8h.html#a8d9081e875654a64ec171f6337e12e59a19f178222ab995ab298dc4f5806ea737", null ]
+    ] ],
+    [ "_WII_LIB_TARGET_DEVICE", "wii__lib_8h.html#a5e9f478182a1d9bf0da1e0f1726250a1", [
+      [ "WII_LIB_TARGET_DEVICE_UNKNOWN", "wii__lib_8h.html#a5e9f478182a1d9bf0da1e0f1726250a1acba04ecf8964ccec2ce2bcf07a22a9ba", null ],
+      [ "WII_LIB_TARGET_DEVICE_UNSUPPORTED", "wii__lib_8h.html#a5e9f478182a1d9bf0da1e0f1726250a1aef9d27562d4723269b4b2c61c2406231", null ],
+      [ "WII_LIB_TARGET_DEVICE_NUNCHUCK", "wii__lib_8h.html#a5e9f478182a1d9bf0da1e0f1726250a1a05a8e0e16be7105aa3595e16982065be", null ],
+      [ "WII_LIB_TARGET_DEVICE_CLASSIC_CONTROLLER", "wii__lib_8h.html#a5e9f478182a1d9bf0da1e0f1726250a1a074923fb08abd7408363f0bb2f3bb2b2", null ],
+      [ "WII_LIB_TARGET_DEVICE_MOTION_PLUS", "wii__lib_8h.html#a5e9f478182a1d9bf0da1e0f1726250a1a400b0a8d422ae5794eca1923c71737cf", null ],
+      [ "WII_LIB_TARGET_DEVICE_MOTION_PLUS_PASS_NUNCHUCK", "wii__lib_8h.html#a5e9f478182a1d9bf0da1e0f1726250a1abc2a125a12ae5671c82bcb2122b5d016", null ],
+      [ "WII_LIB_TARGET_DEVICE_MOTION_PLUS_PASS_CLASSIC", "wii__lib_8h.html#a5e9f478182a1d9bf0da1e0f1726250a1a2bdd71bbd398f7cb4ff483baf6089433", null ]
+    ] ],
+    [ "WiiLib_ConfigureDevice", "wii__lib_8h.html#a142d45ef18cbb69d8ffd2cfac5f591a5", null ],
+    [ "WiiLib_ConnectToTarget", "wii__lib_8h.html#a351e727ad63aec8dd05b8209ffa44adf", null ],
+    [ "WiiLib_DisableRelativePosition", "wii__lib_8h.html#af16378bd3e846732d475d8ae5966bd52", null ],
+    [ "WiiLib_EnableRelativePosition", "wii__lib_8h.html#aa178a16f4a1bce3804a80f0ee01e45ee", null ],
+    [ "WiiLib_Init", "wii__lib_8h.html#a39366dd2388ce824b8307ea8158eab1d", null ],
+    [ "WiiLib_PollStatus", "wii__lib_8h.html#ae4aaae06500be0c8bfb9b12f05752f48", null ],
+    [ "WiiLib_QueryParameter", "wii__lib_8h.html#a3f1a4a0b9edfea52390b8bf07a9fef1f", null ],
+    [ "WiiLib_SetNewHomePosition", "wii__lib_8h.html#a97062879138116ad48b5fd89682d6c48", null ]
+];
