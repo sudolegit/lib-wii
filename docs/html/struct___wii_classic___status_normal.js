@@ -1,0 +1,28 @@
+var struct___wii_classic___status_normal =
+[
+    [ "analogLeftX", "struct___wii_classic___status_normal.html#a04f5cbe5b17e23d8c44980406053fe34", null ],
+    [ "analogLeftY", "struct___wii_classic___status_normal.html#aab0305b6e51c1840fb216acbc9d46aa0", null ],
+    [ "analogRightXHigh", "struct___wii_classic___status_normal.html#a2a6a760714670cced07e1cb12f03b589", null ],
+    [ "analogRightXLow", "struct___wii_classic___status_normal.html#ac812a4a1410fbabc19592cd7fcc5fcbe", null ],
+    [ "analogRightXMid", "struct___wii_classic___status_normal.html#a152b308c4dbf6695163baa1b6b625e20", null ],
+    [ "analogRightY", "struct___wii_classic___status_normal.html#afd3efbd9c025a23b61c968fc538f8307", null ],
+    [ "buttonA", "struct___wii_classic___status_normal.html#a8c14afedbb1e28d37ede7c937e9d72aa", null ],
+    [ "buttonB", "struct___wii_classic___status_normal.html#ade5a606f90d50794d1aad80416e68d7b", null ],
+    [ "buttonHome", "struct___wii_classic___status_normal.html#a971aa2a9d1e9a8a7900a596e4fc148f7", null ],
+    [ "buttonMinus", "struct___wii_classic___status_normal.html#a7f1d417375b229b4df8671025d0a931e", null ],
+    [ "buttonPlus", "struct___wii_classic___status_normal.html#a2edafe190dd43636d4256510affe6c76", null ],
+    [ "buttonTriggerLeft", "struct___wii_classic___status_normal.html#a998767f26f1ce67fb9379e0b02dcd1fd", null ],
+    [ "buttonTriggerRight", "struct___wii_classic___status_normal.html#a4bd89d85eff1a293d7449db91fda003e", null ],
+    [ "buttonX", "struct___wii_classic___status_normal.html#a8f45d7a9ddb48bfc39c2a00f3c67ba88", null ],
+    [ "buttonY", "struct___wii_classic___status_normal.html#a51fbbd5833749b3715dea4e5381f80a8", null ],
+    [ "buttonZLeft", "struct___wii_classic___status_normal.html#a48f1fcded600c5099ad30a976b333075", null ],
+    [ "buttonZRight", "struct___wii_classic___status_normal.html#ab1742505aa6bc11f73ff87c8c80fc245", null ],
+    [ "dpadDown", "struct___wii_classic___status_normal.html#af0d3058befee164a17cddfa1ae5da3e7", null ],
+    [ "dpadLeft", "struct___wii_classic___status_normal.html#a465854078fbd7b55e3737b34955e8932", null ],
+    [ "dpadRight", "struct___wii_classic___status_normal.html#aa51fba1ba0acb5fa4721161e693cb7b8", null ],
+    [ "dpadUp", "struct___wii_classic___status_normal.html#a0e8a7e1178ac21caec260408141863be", null ],
+    [ "leftTriggerHigh", "struct___wii_classic___status_normal.html#a708a576e5ac2e5259595f1cc791a74d0", null ],
+    [ "leftTriggerLow", "struct___wii_classic___status_normal.html#aee186703497e20aa4bde93531f9fc4bc", null ],
+    [ "RESERVED", "struct___wii_classic___status_normal.html#aed8b9ff27aecc9b9ab887d480c187fd6", null ],
+    [ "rightTrigger", "struct___wii_classic___status_normal.html#a42818416ee66c1e2cd7c677175dc647f", null ]
+];

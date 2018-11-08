@@ -1,0 +1,8 @@
+digraph "_WiiLib_Device"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="{_WiiLib_Device\n|+ i2c\l+ target\l+ dataEncrypted\l+ calculateRelativePosition\l+ dataCurrent\l|}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node2 -> Node1 [color="grey25",fontsize="10",style="solid",label=" +interfaceHome\n+interfaceRelative\n+interfaceCurrent" ,arrowhead="odiamond",fontname="Helvetica"];
+  Node2 [label="{_WiiLib_Interface\n|+ buttonA\l+ buttonB\l+ buttonC\l+ buttonX\l+ buttonY\l+ buttonZL\l+ buttonZR\l+ buttonMinus\l+ buttonHome\l+ buttonPlus\land 18 more...\l|}",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$struct___wii_lib___interface.html",tooltip="Used to track the state of a Wii controller&#39;s buttons, accel, etc. "];
+}

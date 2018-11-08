@@ -1,0 +1,13 @@
+digraph "WiiLib_PollStatus"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node69 [label="WiiLib_PollStatus",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node69 -> Node70 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node70 [label="WiiLib_SetNewHomePosition",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$wii__lib_8c.html#a97062879138116ad48b5fd89682d6c48",tooltip="Refreshes tracking values for the target device&#39;s status bits. "];
+  Node70 -> Node71 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node71 [label="WiiLib_ConnectToTarget",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$wii__lib_8c.html#a351e727ad63aec8dd05b8209ffa44adf",tooltip="Attempts to connect to target device. "];
+  Node71 -> Node72 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node72 [label="WiiLib_Init",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$wii__lib_8c.html#a39366dd2388ce824b8307ea8158eab1d",tooltip="Initializes the Wii target device (e.g. nunchuck). "];
+}

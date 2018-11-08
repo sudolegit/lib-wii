@@ -1,0 +1,6 @@
+digraph "_WiiLib_Interface"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="{_WiiLib_Interface\n|+ buttonA\l+ buttonB\l+ buttonC\l+ buttonX\l+ buttonY\l+ buttonZL\l+ buttonZR\l+ buttonMinus\l+ buttonHome\l+ buttonPlus\land 18 more...\l|}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+}

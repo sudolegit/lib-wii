@@ -1,0 +1,22 @@
+var searchData=
+[
+  ['wii_5flib_5fdefault_5fcalculate_5frelative_5fposition',['WII_LIB_DEFAULT_CALCULATE_RELATIVE_POSITION',['../wii__lib_8h.html#a054ac0265ac1de9e0f71d053b0db308d',1,'wii_lib.h']]],
+  ['wii_5flib_5fdelay_5fafter_5fconfig_5fmessage_5fms',['WII_LIB_DELAY_AFTER_CONFIG_MESSAGE_MS',['../wii__lib_8h.html#a0da7413ce13aeaf523ef1df5bfa016e2',1,'wii_lib.h']]],
+  ['wii_5flib_5fdelay_5fafter_5fconfirm_5fid_5fms',['WII_LIB_DELAY_AFTER_CONFIRM_ID_MS',['../wii__lib_8h.html#a7035d27ad23f4ca89f39e630d08cfb6c',1,'wii_lib.h']]],
+  ['wii_5flib_5fdelay_5fafter_5fconnection_5fattempt_5fms',['WII_LIB_DELAY_AFTER_CONNECTION_ATTEMPT_MS',['../wii__lib_8h.html#a78d7295a1a5a2bcf47a5e7f09e13533e',1,'wii_lib.h']]],
+  ['wii_5flib_5fdelay_5fi2c_5fsettle_5ftime_5fms',['WII_LIB_DELAY_I2C_SETTLE_TIME_MS',['../wii__lib_8h.html#a2a994fbcccaa6c5119b2da985b0fc7fb',1,'wii_lib.h']]],
+  ['wii_5flib_5fi2c_5fdelay_5fbetween_5ftx_5frx_5fms',['WII_LIB_I2C_DELAY_BETWEEN_TX_RX_MS',['../wii__lib_8h.html#a582cfda304420e93251ea44f7ae40b9c',1,'wii_lib.h']]],
+  ['wii_5flib_5fi2c_5fdelay_5fpost_5fread_5fms',['WII_LIB_I2C_DELAY_POST_READ_MS',['../wii__lib_8h.html#a3d584551c5f975c30fb1bd4377a950dd',1,'wii_lib.h']]],
+  ['wii_5flib_5fi2c_5fdelay_5fpost_5fsend_5fms',['WII_LIB_I2C_DELAY_POST_SEND_MS',['../wii__lib_8h.html#ad5ce54c7391b4184b6dd992cecc6c947',1,'wii_lib.h']]],
+  ['wii_5flib_5fid_5fclassic_5fcontroller',['WII_LIB_ID_CLASSIC_CONTROLLER',['../wii__lib_8h.html#a1c431c7a97c53000af050a1a85384075',1,'wii_lib.h']]],
+  ['wii_5flib_5fid_5flength',['WII_LIB_ID_LENGTH',['../wii__lib_8h.html#a9964b4a5200c60c9114725a70b59a4fa',1,'wii_lib.h']]],
+  ['wii_5flib_5fid_5fnunchuck',['WII_LIB_ID_NUNCHUCK',['../wii__lib_8h.html#a1d05c484fcbec909dfb78648f8384757',1,'wii_lib.h']]],
+  ['wii_5flib_5fid_5fwii_5fmotion_5fplus',['WII_LIB_ID_WII_MOTION_PLUS',['../wii__lib_8h.html#ab4809f586648fec5221cfa55f718bbff',1,'wii_lib.h']]],
+  ['wii_5flib_5fid_5fwii_5fmotion_5fplus_5fpass_5fclassic',['WII_LIB_ID_WII_MOTION_PLUS_PASS_CLASSIC',['../wii__lib_8h.html#ab3300ac24bbd7b98d7a427b7da0b23e9',1,'wii_lib.h']]],
+  ['wii_5flib_5fid_5fwii_5fmotion_5fplus_5fpass_5fnunchuck',['WII_LIB_ID_WII_MOTION_PLUS_PASS_NUNCHUCK',['../wii__lib_8h.html#aa53e761e4e35d930073124412bb96572',1,'wii_lib.h']]],
+  ['wii_5flib_5fmax_5fconnection_5fattempts',['WII_LIB_MAX_CONNECTION_ATTEMPTS',['../wii__lib_8h.html#a7223ef4662456f8ba25ffc2493657918',1,'wii_lib.h']]],
+  ['wii_5flib_5fmax_5fpayload_5fsize',['WII_LIB_MAX_PAYLOAD_SIZE',['../wii__lib_8h.html#a8319d7118c5bb2249c2a4c525e3381d9',1,'wii_lib.h']]],
+  ['wii_5flib_5fparam_5frequest_5flen',['WII_LIB_PARAM_REQUEST_LEN',['../wii__lib_8h.html#ac31f36f73219f54d73390f1aa4a8bc72',1,'wii_lib.h']]],
+  ['wii_5flib_5fparam_5fresponse_5flen_5fdefault',['WII_LIB_PARAM_RESPONSE_LEN_DEFAULT',['../wii__lib_8h.html#a0ea06c5d36a5285e0fe8dc7d227fbbe9',1,'wii_lib.h']]],
+  ['wii_5flib_5fparam_5fresponse_5flen_5fextended',['WII_LIB_PARAM_RESPONSE_LEN_EXTENDED',['../wii__lib_8h.html#af6014958bf78dc4d8f5353f5a4c0e194',1,'wii_lib.h']]]
+];
