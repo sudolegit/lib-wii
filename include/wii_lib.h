@@ -3,6 +3,9 @@
 //!	
 //!	@brief			Defines public constants, macros, and constant functions available for the "wii" 
 //!					library module.
+//!	
+//!	@note			This is the core header file for the Wii library support (includes all other 
+//!					"wii_...h" header files).
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #ifndef __WII_LIB__
 #define	__WII_LIB__
@@ -32,11 +35,14 @@ typedef enum _WII_LIB_RC
 	WII_LIB_RC_TARGET_ID_MISMATCH					= 4,											//!< Value read from target does not match expected value.
 	WII_LIB_RC_UNKOWN_PARAMETER						= 5,											//!< Parameter requested is unknown to this library.
 	WII_LIB_RC_DATA_RECEIVED_IS_INVALID				= 6,											//!< Data received from target device but value(s) is(are) invalid.
-	WII_LIB_RC_UNABLE_TO_DECRYPT_DATA_RECEIVED		= 7												//!< Unable to decrypt data received over I2C.
+	WII_LIB_RC_UNABLE_TO_DECRYPT_DATA_RECEIVED		= 7,											//!< Unable to decrypt data received over I2C.
+	WII_LIB_RC_RELATIVE_POSITION_FEATURE_DISABLED	= 8												//!< Relative positoin feature disabled presently.
 } WII_LIB_RC;
 
 
 #define	WII_LIB_MAX_CONNECTION_ATTEMPTS				5												//!< Maximum number of connectoin attempts to try before presuming device not available. May not exceed 255.
+
+#define	WII_LIB_DEFAULT_CALCULATE_RELATIVE_POSITION	TRUE											//!< Default value for flag controlling whether or not relative position is automatically calculated.
 
 
 
@@ -110,7 +116,7 @@ typedef enum _WII_LIB_PARAM
 #define	WII_LIB_DELAY_AFTER_CONFIG_MESSAGE_MS		20												//!< Time to delay in milliseconds after after sending a configuration message to the target.
 
 
-// The following delays are executed prior to raising the stop conditoin on the bus.
+// The following delays are executed prior to raising the stop condition on the bus.
 #define	WII_LIB_I2C_DELAY_POST_SEND_MS				0												//!< Delay in milliseconds after trasnmitting a payload across the I2C bus.
 #define	WII_LIB_I2C_DELAY_POST_READ_MS				10												//!< Delay in milliseconds after reading a payload from the I2C bus.
 #define	WII_LIB_I2C_DELAY_BETWEEN_TX_RX_MS			1												//!< Delay in milliseconds between sending a TX request and starting the following RX reqeust to read the reply.
@@ -121,6 +127,56 @@ typedef enum _WII_LIB_PARAM
 //==================================================================================================
 //	TYPEDEFS
 //--------------------------------------------------------------------------------------------------
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//!	@brief			Used to track the state of a Wii controller's buttons, accel, etc.
+//!	
+//!	@details		Defines every known type of feature across Wii controllers.
+//! 
+//! @note           Wii nunchuck's use a single Z button and have one joystick, however the classic 
+//!                 controller has a left and right version of both. For the purposes of tracking, 
+//!                 a non-sided / generic joystick and z button options are not provided.
+//!	
+//!	@note			Using signed integers to make it easier to do a reltive position tracking array.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+typedef struct _WiiLib_Interface
+{
+	// Discrete Buttons:
+	uint8_t											buttonA;										//!< Flag indicating status of A button (pressed == high).
+	uint8_t											buttonB;										//!< Flag indicating status of B button (pressed == high).
+	uint8_t											buttonC;										//!< Flag indicating status of C button (pressed == high).
+	uint8_t											buttonX;										//!< Flag indicating status of X button (pressed == high).
+	uint8_t											buttonY;										//!< Flag indicating status of Y button (pressed == high).
+	uint8_t											buttonZL;										//!< Flag indicating status of the left  z button (pressed == high).
+	uint8_t											buttonZR;										//!< Flag indicating status of the right z button (pressed == high).
+	uint8_t											buttonMinus;									//!< Flag indicating status of minus [-] button.
+	uint8_t											buttonHome;										//!< Flag indicating status of home button.
+	uint8_t											buttonPlus;										//!< Flag indicating status of plus [+] button.
+	// D-Pad Buttons:
+	uint8_t											dpadLeft;										//!< Flag indicating status of the left   d-pad button (pressed == high).
+	uint8_t											dpadUp;											//!< Flag indicating status of the top    d-pad button (pressed == high).
+	uint8_t											dpadRight;										//!< Flag indicating status of the right  d-pad button (pressed == high).
+	uint8_t											dpadDown;										//!< Flag indicating status of the bottom d-pad button (pressed == high).
+	// Triggers:
+	uint8_t											buttonLeftTrigger;								//!< Flag indicating status of left trigger button.
+	uint8_t											buttonRightTrigger;								//!< Flag indicating status of right trigger button.
+	int8_t											triggerLeft;									//!< Value of the left [analog] trigger.
+	int8_t											triggerRight;									//!< Value of the right [analog] trigger.
+	// Analog Joysticks:
+	int16_t											analogLeftX;									//!< Value of the left analog joystick along the x-axis.
+	int16_t											analogLeftY;									//!< Value of the left analog joystick along the y-axis.
+	int16_t											analogRightX;									//!< Value of the right analog joystick along the x-axis.
+	int16_t											analogRightY;									//!< Value of the right analog joystick along the y-axis.
+	// Accelerometers:
+	int16_t											accelX;											//!< Value of the [10-bit] accelerometer along the x-axis.
+	int16_t											accelY;											//!< Value of the [10-bit] accelerometer along the y-axis.
+	int16_t											accelZ;											//!< Value of the [10-bit] accelerometer along the z-axis.
+	// Gyroscopes:
+	int16_t											gyroX;											//!< Value of the gyroscope along the x-axis.
+	int16_t											gyroY;											//!< Value of the gyroscope along the y-axis.
+	int16_t											gyroZ;											//!< Value of the gyroscope along the z-axis.
+} WiiLib_Interface;
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //!	@brief			Defines the tracking information used when communicating with Wii targets.
 //!	
@@ -133,8 +189,11 @@ typedef struct _WiiLib_Device
 	I2C_Device										i2c;											//!< I2C device information. Used when communicating with Wii device over I2C.
 	WII_LIB_TARGET_DEVICE							target;											//!< Target device type intended for communication.
 	uint8_t											dataEncrypted;									//!< Flag indicating if data read is encrypted.
+	uint8_t											calculateRelativePosition;						//!< Flag inidicating if the relative position values should be calculated (defaults to 'WII_LIB_DEFAULT_CALCULATE_RELATIVE_POSITION').
 	uint8_t											dataCurrent[WII_LIB_MAX_PAYLOAD_SIZE];			//!< Payload used when storing the most recently read data in from the target device.
-	uint8_t											dataBaseline[WII_LIB_MAX_PAYLOAD_SIZE];			//!< Payload used when storing the baseline data at boot/initialization (zero-points at boot).
+	WiiLib_Interface								interfaceCurrent;								//!< Instance of most recently read-in status values for interface (buttons, accelerometers, etc.) on the target device.
+	WiiLib_Interface								interfaceHome;									//!< Instance of status values associated with the home position for the interface (buttons, accelerometers, etc.) on the target device.
+	WiiLib_Interface								interfaceRelative;								//!< Relative interface values obtained by taking 'interfaceCurrent' and subtracting 'interfaceHome' for all interface values.
 } WiiLib_Device;
 
 
@@ -143,12 +202,25 @@ typedef struct _WiiLib_Device
 //==================================================================================================
 //	PUBLIC FUNCTION PROTOTYPES
 //--------------------------------------------------------------------------------------------------
-WII_LIB_RC		WiiLib_Init(				I2C_MODULE module,		uint32_t pbClk,	WII_LIB_TARGET_DEVICE target,	BOOL decryptData,	WiiLib_Device *device	);
-WII_LIB_RC		WiiLib_ConnectToTarget(		WiiLib_Device *device 																								);
-WII_LIB_RC		WiiLib_ConfigureDevice(		WiiLib_Device *device																								);
-WII_LIB_RC		WiiLib_QueryParameter(		WiiLib_Device *device,	WII_LIB_PARAM param																			);
-WII_LIB_RC		WiiLib_SetNewHomePosition(	WiiLib_Device *device																								);
-WII_LIB_RC		WiiLib_PollStatus(			WiiLib_Device *device																								);
+WII_LIB_RC		WiiLib_Init(					I2C_MODULE module,		uint32_t pbClk,	WII_LIB_TARGET_DEVICE target,	BOOL decryptData,	WiiLib_Device *device	);
+WII_LIB_RC		WiiLib_ConnectToTarget(			WiiLib_Device *device 																								);
+WII_LIB_RC		WiiLib_ConfigureDevice(			WiiLib_Device *device																								);
+WII_LIB_RC		WiiLib_QueryParameter(			WiiLib_Device *device,	WII_LIB_PARAM param																			);
+WII_LIB_RC		WiiLib_SetNewHomePosition(		WiiLib_Device *device																								);
+WII_LIB_RC		WiiLib_PollStatus(				WiiLib_Device *device																								);
+WII_LIB_RC		WiiLib_EnableRelativePosition(	WiiLib_Device *device 																								);
+WII_LIB_RC		WiiLib_DisableRelativePosition(	WiiLib_Device *device 																								);
+
+
+
+
+//==================================================================================================
+//	WRAPPER INCLUDES
+//--------------------------------------------------------------------------------------------------
+// Additional includes that may be dependent upon items above but allow this file to be both the 
+// core fiel and single wrapper for the library.
+#include "wii_nunchuck.h"
+#include "wii_classic_controller.h"
 
 
 #endif	// __WII_LIB__
