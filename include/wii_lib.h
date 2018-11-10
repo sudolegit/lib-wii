@@ -36,20 +36,38 @@ typedef enum _WII_LIB_RC
 	WII_LIB_RC_UNKOWN_PARAMETER						= 5,											//!< Parameter requested is unknown to this library.
 	WII_LIB_RC_DATA_RECEIVED_IS_INVALID				= 6,											//!< Data received from target device but value(s) is(are) invalid.
 	WII_LIB_RC_UNABLE_TO_DECRYPT_DATA_RECEIVED		= 7,											//!< Unable to decrypt data received over I2C.
-	WII_LIB_RC_RELATIVE_POSITION_FEATURE_DISABLED	= 8												//!< Relative positoin feature disabled presently.
+	WII_LIB_RC_DEVICE_DISABLED						= 8,											//!< Device instance is disabled (too many errors).
+	WII_LIB_RC_RELATIVE_POSITION_FEATURE_DISABLED	= 9												//!< Relative position feature disabled presently.
 } WII_LIB_RC;
 
-
-#define	WII_LIB_MAX_CONNECTION_ATTEMPTS				5												//!< Maximum number of connectoin attempts to try before presuming device not available. May not exceed 255.
-
 #define	WII_LIB_DEFAULT_CALCULATE_RELATIVE_POSITION	TRUE											//!< Default value for flag controlling whether or not relative position is automatically calculated.
+
+#define	WII_LIB_MAX_CONNECTION_ATTEMPTS				5												//!< Maximum number of connection attempts to try before presuming device not available. Used during initializatoin. May not exceed 255.
+
+// Limits used when monitoring error counts and determining any graceful recovery attempts that 
+// should be attempted.
+#define	WII_LIB_MAX_FAILURES_BEFORE_RECONFIGURING	3												//!< Number of failed I2C communication attempts before attempting to reconfigure the target device.
+#define	WII_LIB_MAX_FAILURES_BEFORE_DISABLING		20												//!< Number of failed I2C communication attempts before disabling communication with the target device.
 
 
 
 
 //==================================================================================================
-//	CONSTANTS => WII COMMUNICATOIN PROTOCOL
+//	CONSTANTS => WII COMMUNICATION PROTOCOL
 //--------------------------------------------------------------------------------------------------
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//!	@brief			Defines operational status for interacting with target a target device. Used 
+//!					to track next state of communication with Wii targets.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+typedef enum _WII_LIB_DEVICE_STATUS
+{
+	WII_LIB_DEVICE_STATUS_NOT_INITIALIZED			= 0,											//!< Target device needs to be initialized.
+	WII_LIB_DEVICE_STATUS_CONFIGURING 				= 1,											//!< Target device needs to be (re)configured.
+	WII_LIB_DEVICE_STATUS_ACTIVE 					= 2,											//!< Target device is operating as expected.
+	WII_LIB_DEVICE_STATUS_DISABLED 					= 3												//!< Too many failures have occurred. Target device is disabled (no communication permitted without re-initializing.
+} WII_LIB_DEVICE_STATUS;
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //!	@brief			Defines constants used as abstractions to indicate target device type. 
 //!					Referenced to determine initialization process, register settings, and how to 
@@ -90,7 +108,7 @@ typedef enum _WII_LIB_I2C_ADDR
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//!	@brief			Defines all known paramters (registers) available for library to read and/or 
+//!	@brief			Defines all known parameters (registers) available for library to read and/or 
 //!					write.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 typedef enum _WII_LIB_PARAM
@@ -136,7 +154,8 @@ typedef enum _WII_LIB_PARAM
 //!                 controller has a left and right version of both. For the purposes of tracking, 
 //!                 a non-sided / generic joystick and z button options are not provided.
 //!	
-//!	@note			Using signed integers to make it easier to do a reltive position tracking array.
+//!	@note			Using signed integers to make it easier to do a relative position tracking 
+//!					array.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 typedef struct _WiiLib_Interface
 {
@@ -189,14 +208,14 @@ typedef struct _WiiLib_Device
 	I2C_Device										i2c;											//!< I2C device information. Used when communicating with Wii device over I2C.
 	WII_LIB_TARGET_DEVICE							target;											//!< Target device type intended for communication.
 	uint8_t											dataEncrypted;									//!< Flag indicating if data read is encrypted.
-	uint8_t											calculateRelativePosition;						//!< Flag inidicating if the relative position values should be calculated (defaults to 'WII_LIB_DEFAULT_CALCULATE_RELATIVE_POSITION').
+	uint8_t											calculateRelativePosition;						//!< Flag indicating if the relative position values should be calculated (defaults to 'WII_LIB_DEFAULT_CALCULATE_RELATIVE_POSITION').
 	uint8_t											dataCurrent[WII_LIB_MAX_PAYLOAD_SIZE];			//!< Payload used when storing the most recently read data in from the target device.
 	WiiLib_Interface								interfaceCurrent;								//!< Instance of most recently read-in status values for interface (buttons, accelerometers, etc.) on the target device.
 	WiiLib_Interface								interfaceHome;									//!< Instance of status values associated with the home position for the interface (buttons, accelerometers, etc.) on the target device.
 	WiiLib_Interface								interfaceRelative;								//!< Relative interface values obtained by taking 'interfaceCurrent' and subtracting 'interfaceHome' for all interface values.
+	uint8_t											failedParamQueryCount;							//!< Tracks number of failed queries over I2C and referenced during maintenance tasks. Updated after each parameter query.
+	WII_LIB_DEVICE_STATUS							status;											//!< Status for device. Updated throughout the first initialization process and when (and if) maintenance tasks are run.
 } WiiLib_Device;
-
-
 
 
 //==================================================================================================
@@ -205,6 +224,7 @@ typedef struct _WiiLib_Device
 WII_LIB_RC		WiiLib_Init(					I2C_MODULE module,		uint32_t pbClk,	WII_LIB_TARGET_DEVICE target,	BOOL decryptData,	WiiLib_Device *device	);
 WII_LIB_RC		WiiLib_ConnectToTarget(			WiiLib_Device *device 																								);
 WII_LIB_RC		WiiLib_ConfigureDevice(			WiiLib_Device *device																								);
+WII_LIB_RC		WiiLib_DoMaintenance(			WiiLib_Device *device 																								);
 WII_LIB_RC		WiiLib_QueryParameter(			WiiLib_Device *device,	WII_LIB_PARAM param																			);
 WII_LIB_RC		WiiLib_SetNewHomePosition(		WiiLib_Device *device																								);
 WII_LIB_RC		WiiLib_PollStatus(				WiiLib_Device *device																								);
@@ -218,7 +238,7 @@ WII_LIB_RC		WiiLib_DisableRelativePosition(	WiiLib_Device *device 														
 //	WRAPPER INCLUDES
 //--------------------------------------------------------------------------------------------------
 // Additional includes that may be dependent upon items above but allow this file to be both the 
-// core fiel and single wrapper for the library.
+// core file and single wrapper for the library.
 #include "wii_nunchuck.h"
 #include "wii_classic_controller.h"
 
