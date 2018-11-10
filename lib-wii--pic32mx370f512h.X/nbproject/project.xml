@@ -3,7 +3,7 @@
     <type>com.microchip.mplab.nbide.embedded.makeproject</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/make-project/1">
-            <name>lib-wii--pic32mx795f512l</name>
+            <name>lib-wii--pic32mx370f512h</name>
             <creation-uuid>16cf2980-473a-4507-b240-7797d6b08abf</creation-uuid>
             <make-project-type>0</make-project-type>
             <c-extensions>c</c-extensions>
