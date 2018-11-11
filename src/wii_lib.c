@@ -40,7 +40,7 @@ static WII_LIB_RC				WiiLib_UpdateInterfaceTracking(	WiiLib_Device *device					)
 //!										I2C initialization).
 //!	@param[in]		target				Target type. Should be of type 'WII_LIB_TARGET_DEVICE'.
 //!	@param[in]		decryptData			Boolean flag indicating if data should be initialized as 
-//!										deecrypted.
+//!										decrypted.
 //!	@param[in]		*device				Instance of 'WiiLib_Device{}' to populate/utilize.
 //!	
 //!	@returns		Return code corresponding to an entry in the 'WII_LIB_RC' enum (zero == success; 
@@ -48,9 +48,6 @@ static WII_LIB_RC				WiiLib_UpdateInterfaceTracking(	WiiLib_Device *device					)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 WII_LIB_RC WiiLib_Init( I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE target, BOOL decryptData, WiiLib_Device *device )
 {
-	WII_LIB_RC					returnCode						= WII_LIB_RC_SUCCESS;
-	uint8_t						connectionAttemptsReamining		= WII_LIB_MAX_CONNECTION_ATTEMPTS;
-	
 	// Presume delay not yet initialized and initialize delay module. Even if this is not the case, 
 	// should have no harm (in theory/so long as pbClk not different between devices).
 	Delay_Init(pbClk);
@@ -80,10 +77,6 @@ WII_LIB_RC WiiLib_Init( I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE
 	device->target						= target;
 	device->dataEncrypted				= (uint8_t)!(decryptData);
 	
-	// Define initial device status.
-	device->failedParamQueryCount		= 0;
-	device->status						= WII_LIB_DEVICE_STATUS_NOT_INITIALIZED;
-	
 	// Define device-specific settings.
 	switch(device->target)
 	{
@@ -110,24 +103,74 @@ WII_LIB_RC WiiLib_Init( I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE
 	
 	Delay_Ms(WII_LIB_DELAY_I2C_SETTLE_TIME_MS);
 	
-	// Attempt to connect to the target device until we are successful, run out of attempts, or connect successfully but to the wrong target type.
-	do
+	// Define initial device status and execute maintenance tasks to handle initialization / etc.
+	device->failedParamQueryCount		= 0;
+	device->status						= WII_LIB_DEVICE_STATUS_NOT_INITIALIZED;
+	return WiiLib_DoMaintenance(device);
+	
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//!	@brief			Checks error count and status for provided device and performs any maintenance 
+//!					tasks that are deemed necessary. Aim is to use this method to gracefully handle 
+//!					initialization and error conditions.
+//!	
+//!	@param[in]		*device				Instance of 'WiiLib_Device{}' defining target device 
+//!										interaction.
+//!	
+//!	@returns		Return code corresponding to an entry in the 'WII_LIB_RC' enum (zero == success; 
+//!					non-zero == error code). Please see enum definition for details.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+WII_LIB_RC WiiLib_DoMaintenance( WiiLib_Device *device )
+{
+	if( device->status == WII_LIB_DEVICE_STATUS_STRUCTURE_NOT_DEFINED )
 	{
-		if( connectionAttemptsReamining != WII_LIB_MAX_CONNECTION_ATTEMPTS )
-			Delay_Ms( WII_LIB_DELAY_AFTER_CONNECTION_ATTEMPT_MS );
+		// We cannot maintain anything without first being provided configuration details through 
+		// the call to the initialization function.
+		return WII_LIB_RC_TARGET_STRUCTURE_NOT_DEFINED;
+	}
+	else if( device->failedParamQueryCount == 0 )
+	{
+		device->status = WII_LIB_DEVICE_STATUS_ACTIVE;
+		return WII_LIB_RC_SUCCESS;
+	}
+	else if( device->failedParamQueryCount > WII_LIB_MAX_FAILURES_BEFORE_DISABLING )
+	{
+		device->status = WII_LIB_DEVICE_STATUS_DISABLED;
+		return WII_LIB_RC_DEVICE_DISABLED;
+	}
+	else if( device->failedParamQueryCount > WII_LIB_MAX_FAILURES_BEFORE_RECONFIGURING )
+	{
+		device->status = WII_LIB_DEVICE_STATUS_CONFIGURING;
+		return WiiLib_ConfigureDevice(device);
+	}
+	else if( device->status == WII_LIB_DEVICE_STATUS_NOT_INITIALIZED )
+	{
+		// NOTE:	It is vital that the 'not initialized' state follows after the checks against 
+		//			error counts. Thus, if the device is not found at boot, querying for it will 
+		//			halt eventually.
+		WII_LIB_RC		returnCode						= WII_LIB_RC_SUCCESS;
+		uint8_t			connectionAttemptsReamining		= WII_LIB_MAX_CONNECTION_ATTEMPTS;
 		
-		returnCode = WiiLib_ConnectToTarget( device );
-		
-		if( returnCode == WII_LIB_RC_SUCCESS || returnCode == WII_LIB_RC_TARGET_ID_MISMATCH )
+		// Attempt to connect to the target device until we are successful, run out of attempts, or connect successfully but to the wrong target type.
+		do
 		{
-			device->status = WII_LIB_DEVICE_STATUS_ACTIVE;
-			break;
-		}
+			if( connectionAttemptsReamining != WII_LIB_MAX_CONNECTION_ATTEMPTS )
+				Delay_Ms( WII_LIB_DELAY_AFTER_CONNECTION_ATTEMPT_MS );
+
+			returnCode = WiiLib_ConnectToTarget( device );
+
+			if( returnCode == WII_LIB_RC_SUCCESS || returnCode == WII_LIB_RC_TARGET_ID_MISMATCH )
+			{
+				device->status = WII_LIB_DEVICE_STATUS_ACTIVE;
+				return WII_LIB_RC_SUCCESS;
+			}
+
+		} while( --connectionAttemptsReamining );
 		
-	} while( --connectionAttemptsReamining );	
-	
-	return returnCode;
-	
+		return WII_LIB_RC_TARGET_NOT_INITIALIZED;
+	} 
 }
 
 
@@ -139,7 +182,7 @@ WII_LIB_RC WiiLib_Init( I2C_MODULE module, uint32_t pbClk, WII_LIB_TARGET_DEVICE
 //!					but before exiting the function, grabs the initial device status (queries 
 //!					WII_LIB_PARAM_STATUS).
 //!	
-//!	@note			Only attempts to connect once. Repeated connectoin attempts (and any desired 
+//!	@note			Only attempts to connect once. Repeated connection attempts (and any desired 
 //!					delays) should be handled by caller.
 //!	
 //!	@param[in]		*device				Instance of 'WiiLib_Device{}' to utilize.
@@ -224,44 +267,7 @@ WII_LIB_RC WiiLib_ConfigureDevice( WiiLib_Device *device )
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//!	@brief			Checks error count and status for provided device and performs any mainenance 
-//!					tasks that are deemed necessary. Aim is to use this method to gracefully handle 
-//!					error conditions.
-//!	
-//!	@param[in]		*device				Instance of 'WiiLib_Device{}' defining target device 
-//!										interaction.
-//!	
-//!	@returns		Return code corresponding to an entry in the 'WII_LIB_RC' enum (zero == success; 
-//!					non-zero == error code). Please see enum definition for details.
-////////////////////////////////////////////////////////////////////////////////////////////////////
-WII_LIB_RC WiiLib_DoMaintenance( WiiLib_Device *device )
-{
-	if( device->status == WII_LIB_DEVICE_STATUS_NOT_INITIALIZED )
-	{
-		// We cannot maintain anything without first being provided configuration details through 
-		// the call to the initialization function.
-		return WII_LIB_RC_TARGET_NOT_INITIALIZED;
-	}
-	else if( device->failedParamQueryCount == 0 )
-	{
-		device->status = WII_LIB_DEVICE_STATUS_ACTIVE;
-		return WII_LIB_RC_SUCCESS;
-	}
-	else if( device->failedParamQueryCount > WII_LIB_MAX_FAILURES_BEFORE_RECONFIGURING )
-	{
-		device->status = WII_LIB_DEVICE_STATUS_CONFIGURING;
-		return WiiLib_ConfigureDevice(device);
-	}
-	else if( device->failedParamQueryCount > WII_LIB_MAX_FAILURES_BEFORE_DISABLING )
-	{
-		device->status = WII_LIB_DEVICE_STATUS_DISABLED;
-		return WII_LIB_RC_DEVICE_DISABLED;
-	} 
-}
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-//!	@brief			Hanldes process of initiating and reading the response for querying a parameter 
+//!	@brief			Handles process of initiating and reading the response for querying a parameter 
 //!					value from the target device.
 //!	
 //!	@details		Verifies the parameter requested is supported [a known parameter] before 
@@ -290,7 +296,7 @@ WII_LIB_RC WiiLib_QueryParameter( WiiLib_Device *device, WII_LIB_PARAM param )
 	if( device->status == WII_LIB_DEVICE_STATUS_DISABLED )
 		return WII_LIB_RC_DEVICE_DISABLED;
 	
-	// Validate paramter ID provided and define response length (amount to query over I2C bus).
+	// Validate parameter ID provided and define response length (amount to query over I2C bus).
 	switch( param )
 	{
 		case WII_LIB_PARAM_STATUS:
@@ -333,7 +339,7 @@ WII_LIB_RC WiiLib_QueryParameter( WiiLib_Device *device, WII_LIB_PARAM param )
 		// Save to store date received. Copy temporary buffer over to destination.
 		memcpy( &device->dataCurrent[0], &buffOut[0], WII_LIB_MAX_PAYLOAD_SIZE );
 		
-		// If we reach this point we know communication ovoer I2C is valid and can clear the error 
+		// If we reach this point we know communication over I2C is valid and can clear the error 
 		// flag count.
 		device->failedParamQueryCount = 0;
 		

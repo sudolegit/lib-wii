@@ -30,24 +30,25 @@ typedef enum _WII_LIB_RC
 {
 	WII_LIB_RC_SUCCESS								= 0,											//!< Successfully completed task(s).
 	WII_LIB_RC_UNSUPPORTED_DEVICE					= 1,											//!< Wii target type presently unsupported.
-	WII_LIB_RC_TARGET_NOT_INITIALIZED				= 2,											//!< Target not initialized.
-	WII_LIB_RC_I2C_ERROR							= 3,											//!< Failed to communicate with device over I2C.
-	WII_LIB_RC_TARGET_ID_MISMATCH					= 4,											//!< Value read from target does not match expected value.
-	WII_LIB_RC_UNKOWN_PARAMETER						= 5,											//!< Parameter requested is unknown to this library.
-	WII_LIB_RC_DATA_RECEIVED_IS_INVALID				= 6,											//!< Data received from target device but value(s) is(are) invalid.
-	WII_LIB_RC_UNABLE_TO_DECRYPT_DATA_RECEIVED		= 7,											//!< Unable to decrypt data received over I2C.
-	WII_LIB_RC_DEVICE_DISABLED						= 8,											//!< Device instance is disabled (too many errors).
-	WII_LIB_RC_RELATIVE_POSITION_FEATURE_DISABLED	= 9												//!< Relative position feature disabled presently.
+	WII_LIB_RC_TARGET_STRUCTURE_NOT_DEFINED			= 2,											//!< Structure for how to interact with target not yet defined/unable to infer how to communicate or interpret response data.
+	WII_LIB_RC_TARGET_NOT_INITIALIZED				= 3,											//!< Target not initialized.
+	WII_LIB_RC_I2C_ERROR							= 4,											//!< Failed to communicate with device over I2C.
+	WII_LIB_RC_TARGET_ID_MISMATCH					= 5,											//!< Value read from target does not match expected value.
+	WII_LIB_RC_UNKOWN_PARAMETER						= 6,											//!< Parameter requested is unknown to this library.
+	WII_LIB_RC_DATA_RECEIVED_IS_INVALID				= 7,											//!< Data received from target device but value(s) is(are) invalid.
+	WII_LIB_RC_UNABLE_TO_DECRYPT_DATA_RECEIVED		= 8,											//!< Unable to decrypt data received over I2C.
+	WII_LIB_RC_DEVICE_DISABLED						= 9,											//!< Device instance is disabled (too many errors).
+	WII_LIB_RC_RELATIVE_POSITION_FEATURE_DISABLED	= 10											//!< Relative position feature disabled presently.
 } WII_LIB_RC;
 
 #define	WII_LIB_DEFAULT_CALCULATE_RELATIVE_POSITION	TRUE											//!< Default value for flag controlling whether or not relative position is automatically calculated.
 
-#define	WII_LIB_MAX_CONNECTION_ATTEMPTS				5												//!< Maximum number of connection attempts to try before presuming device not available. Used during initializatoin. May not exceed 255.
+#define	WII_LIB_MAX_CONNECTION_ATTEMPTS				1												//!< Maximum number of connection attempts to try during initialization before presuming device not available. Used during initializatoin. May not exceed 255.
 
 // Limits used when monitoring error counts and determining any graceful recovery attempts that 
 // should be attempted.
 #define	WII_LIB_MAX_FAILURES_BEFORE_RECONFIGURING	3												//!< Number of failed I2C communication attempts before attempting to reconfigure the target device.
-#define	WII_LIB_MAX_FAILURES_BEFORE_DISABLING		20												//!< Number of failed I2C communication attempts before disabling communication with the target device.
+#define	WII_LIB_MAX_FAILURES_BEFORE_DISABLING		100												//!< Number of failed I2C communication attempts before disabling communication with the target device.
 
 
 
@@ -61,10 +62,11 @@ typedef enum _WII_LIB_RC
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 typedef enum _WII_LIB_DEVICE_STATUS
 {
-	WII_LIB_DEVICE_STATUS_NOT_INITIALIZED			= 0,											//!< Target device needs to be initialized.
-	WII_LIB_DEVICE_STATUS_CONFIGURING 				= 1,											//!< Target device needs to be (re)configured.
-	WII_LIB_DEVICE_STATUS_ACTIVE 					= 2,											//!< Target device is operating as expected.
-	WII_LIB_DEVICE_STATUS_DISABLED 					= 3												//!< Too many failures have occurred. Target device is disabled (no communication permitted without re-initializing.
+	WII_LIB_DEVICE_STATUS_STRUCTURE_NOT_DEFINED		= 0,											//!< Target device not structured yet (unable to attempt initialization, etc. due to lack of details)
+	WII_LIB_DEVICE_STATUS_NOT_INITIALIZED			= 1,											//!< Target device needs to be initialized.
+	WII_LIB_DEVICE_STATUS_CONFIGURING 				= 2,											//!< Target device needs to be (re)configured.
+	WII_LIB_DEVICE_STATUS_ACTIVE 					= 3,											//!< Target device is operating as expected.
+	WII_LIB_DEVICE_STATUS_DISABLED 					= 4												//!< Too many failures have occurred. Target device is disabled (no communication permitted without re-initializing.
 } WII_LIB_DEVICE_STATUS;
 
 
@@ -213,7 +215,7 @@ typedef struct _WiiLib_Device
 	WiiLib_Interface								interfaceCurrent;								//!< Instance of most recently read-in status values for interface (buttons, accelerometers, etc.) on the target device.
 	WiiLib_Interface								interfaceHome;									//!< Instance of status values associated with the home position for the interface (buttons, accelerometers, etc.) on the target device.
 	WiiLib_Interface								interfaceRelative;								//!< Relative interface values obtained by taking 'interfaceCurrent' and subtracting 'interfaceHome' for all interface values.
-	uint8_t											failedParamQueryCount;							//!< Tracks number of failed queries over I2C and referenced during maintenance tasks. Updated after each parameter query.
+	uint32_t										failedParamQueryCount;							//!< Tracks number of failed queries over I2C and referenced during maintenance tasks. Updated after each parameter query.
 	WII_LIB_DEVICE_STATUS							status;											//!< Status for device. Updated throughout the first initialization process and when (and if) maintenance tasks are run.
 } WiiLib_Device;
 
