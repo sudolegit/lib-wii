@@ -130,11 +130,6 @@ WII_LIB_RC WiiLib_DoMaintenance( WiiLib_Device *device )
 		// the call to the initialization function.
 		return WII_LIB_RC_TARGET_STRUCTURE_NOT_DEFINED;
 	}
-	else if( device->failedParamQueryCount == 0 )
-	{
-		device->status = WII_LIB_DEVICE_STATUS_ACTIVE;
-		return WII_LIB_RC_SUCCESS;
-	}
 	else if( device->failedParamQueryCount > WII_LIB_MAX_FAILURES_BEFORE_DISABLING )
 	{
 		device->status = WII_LIB_DEVICE_STATUS_DISABLED;
@@ -171,6 +166,12 @@ WII_LIB_RC WiiLib_DoMaintenance( WiiLib_Device *device )
 		
 		return WII_LIB_RC_TARGET_NOT_INITIALIZED;
 	} 
+	else
+	{
+		// Presume no error at this point or error not large enough to matter.
+		device->status = WII_LIB_DEVICE_STATUS_ACTIVE;
+		return WII_LIB_RC_SUCCESS;
+	}
 }
 
 
