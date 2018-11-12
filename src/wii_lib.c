@@ -3,6 +3,23 @@
 //!	
 //!	@brief			Implements functions used to abstract away interacting with Wii devices over 
 //!					I2C.
+//!	
+//!	@details		Provides a number of abstraction functions, but typical flow for using this 
+//!					library should be as follows:
+//!						1.	Create an instance of 'WiiLib_Device'.
+//!						2.	Pass pointer to instance of device along to 'WiiLib_Init()'.
+//!							-	Keep in mind that the initialization process will change the 
+//!								requested target type to match the one found on the bus. The only 
+//!								major concern is if pass-through mode or Wii motion plus is used 
+//!								(nunchuck and classic controller interchangeable).
+//!						3.	Invoke 'WiiLib_DoMaintenance()' on a regular basis to gracefully handle 
+//!							error conditions (suggested to invoke just prior to the following step).
+//!						4.	Invoke 'WiiLib_PollStatus()' to read in the state of the external 
+//!							target.
+//!						5.	Use 'devce.interfaceCurrent{}' and 'device.interfaceRelative{}' to 
+//!							check the state of the various features provided by the external target.
+//!						6.	If ever you wish to reconfigure the relative positioning reference 
+//!							point, invoke the 'WiiLib_SetNewHomePosition()' function.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
