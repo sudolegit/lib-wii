@@ -223,15 +223,16 @@ typedef struct _WiiLib_Device
 //==================================================================================================
 //	PUBLIC FUNCTION PROTOTYPES
 //--------------------------------------------------------------------------------------------------
-WII_LIB_RC		WiiLib_Init(					I2C_MODULE module,		uint32_t pbClk,	WII_LIB_TARGET_DEVICE target,	BOOL decryptData,	WiiLib_Device *device	);
-WII_LIB_RC		WiiLib_ConnectToTarget(			WiiLib_Device *device 																								);
-WII_LIB_RC		WiiLib_ConfigureDevice(			WiiLib_Device *device																								);
-WII_LIB_RC		WiiLib_DoMaintenance(			WiiLib_Device *device 																								);
-WII_LIB_RC		WiiLib_QueryParameter(			WiiLib_Device *device,	WII_LIB_PARAM param																			);
-WII_LIB_RC		WiiLib_SetNewHomePosition(		WiiLib_Device *device																								);
-WII_LIB_RC		WiiLib_PollStatus(				WiiLib_Device *device																								);
-WII_LIB_RC		WiiLib_EnableRelativePosition(	WiiLib_Device *device 																								);
-WII_LIB_RC		WiiLib_DisableRelativePosition(	WiiLib_Device *device 																								);
+WII_LIB_RC		WiiLib_Init(						I2C_MODULE module,		uint32_t pbClk,	WII_LIB_TARGET_DEVICE target,	BOOL decryptData,	WiiLib_Device *device	);
+WII_LIB_RC		WiiLib_ConnectToTarget(				WiiLib_Device *device 																								);
+WII_LIB_RC		WiiLib_ConfigureDevice(				WiiLib_Device *device																								);
+WII_LIB_RC		WiiLib_DoMaintenance(				WiiLib_Device *device 																								);
+WII_LIB_RC		WiiLib_QueryParameter(				WiiLib_Device *device,	WII_LIB_PARAM param																			);
+WII_LIB_RC		WiiLib_MeasureNewHomePosition(		WiiLib_Device *device																								);
+void			WiiLib_SaveCurrentPositionAsHome(	WiiLib_Device *device																								);
+WII_LIB_RC		WiiLib_PollStatus(					WiiLib_Device *device																								);
+WII_LIB_RC		WiiLib_EnableRelativePosition(		WiiLib_Device *device 																								);
+WII_LIB_RC		WiiLib_DisableRelativePosition(		WiiLib_Device *device 																								);
 
 
 

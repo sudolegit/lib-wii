@@ -19,13 +19,16 @@
 //!						5.	Use 'devce.interfaceCurrent{}' and 'device.interfaceRelative{}' to 
 //!							check the state of the various features provided by the external target.
 //!						6.	If ever you wish to reconfigure the relative positioning reference 
-//!							point, invoke the 'WiiLib_SetNewHomePosition()' function.
+//!							point, invoke the 'WiiLib_MeasureNewHomePosition()' function.
+//!							-	Alternatively, if you have recently polled the status of a target 
+//!								device, you can call 'WiiLib_SaveCurrentPositionAsHome()' instead.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 //==================================================================================================
 //	INCLUDES
 //--------------------------------------------------------------------------------------------------
+#include <string.h>
 #include "i2c.h"
 #include "wii_lib.h"
 
@@ -228,7 +231,7 @@ WII_LIB_RC WiiLib_ConnectToTarget( WiiLib_Device *device )
 	Delay_Ms(WII_LIB_DELAY_AFTER_CONFIRM_ID_MS);
 	
 	// Record current status values from target and use those as the home position for the device.
-	return WiiLib_SetNewHomePosition( device );
+	return WiiLib_MeasureNewHomePosition( device );
 	
 }
 
@@ -400,7 +403,8 @@ WII_LIB_RC WiiLib_PollStatus( WiiLib_Device *device )
 //!	@brief			Refreshes tracking values for the target device's status bits.
 //!	
 //!	@details		Uses the 'WiiLib_QueryParameter()' to execute a query for 'WII_LIB_PARAM_STATUS' 
-//!					and store the result within the buffer in the 'device->dataBaseline[]' buffer.
+//!					and then invokes the 'WiiLib_SaveCurrentPositionAsHome()' function to handle 
+//!					updating of the home position values.
 //!	
 //!	@note			This is mainly meant to serve as a simple wrapper to make it easier for app 
 //!					development to not need to know much about the internals of the I2C query 
@@ -414,7 +418,7 @@ WII_LIB_RC WiiLib_PollStatus( WiiLib_Device *device )
 //!	@returns		Return code corresponding to an entry in the 'WII_LIB_RC' enum (zero == success; 
 //!					non-zero == error code). Please see enum definition for details.
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-WII_LIB_RC WiiLib_SetNewHomePosition( WiiLib_Device *device )
+WII_LIB_RC WiiLib_MeasureNewHomePosition( WiiLib_Device *device )
 {
 	WII_LIB_RC		returnCode;
 	
@@ -424,10 +428,24 @@ WII_LIB_RC WiiLib_SetNewHomePosition( WiiLib_Device *device )
 	returnCode = WiiLib_PollStatus( device );
 	
 	if( returnCode == WII_LIB_RC_SUCCESS )
-		memcpy( (void *)&device->interfaceHome, (void *)&device->interfaceCurrent, sizeof(WiiLib_Device) );
+		WiiLib_SaveCurrentPositionAsHome(device);
 	
 	return returnCode;
 	
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//!	@brief			Saves the current interface values as the new home position.
+//!	
+//!	@details		Executes a simple memcpy() to copy over data. Serves as a method to encapsulate/
+//!					abstract away the necessary pointer and size information.
+//!	
+//!	@param[in]		*device				Instance of 'WiiLib_Device{}'.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void WiiLib_SaveCurrentPositionAsHome( WiiLib_Device *device )
+{
+	memcpy( (void *)&device->interfaceHome, (void *)&device->interfaceCurrent, sizeof(WiiLib_Device) );
 }
 
 
