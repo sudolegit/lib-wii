@@ -20,6 +20,18 @@
 
 
 //==================================================================================================
+//	CONSTANTS => THRESHOLDS
+//--------------------------------------------------------------------------------------------------
+// NOTE:	The following threshold values are not used in the library but are good reference values 
+//			for the amount of noise to ignore off of a relative zero position in an application.
+#define	WII_CLASSIC_CONTROLLER_THRESHOLD_ANALOG_LEFT		15					//!< Threshold off of relative position to consider accelerometer data to be active. Has a range of ~60 (15 ~= 25% of range of movement).
+#define	WII_CLASSIC_CONTROLLER_THRESHOLD_ANALOG_RIGHT		8					//!< Threshold off of relative position to consider left analog joystick to be active. Has a range of ~30 (8 ~= 25% of range of movement).
+#define	WII_CLASSIC_CONTROLLER_THRESHOLD_TRIGGERS			8					//!< Threshold off of relative position to conider and left or right trigger button to be active. Has a range of ~30 (8 ~25% of range of movement).
+
+
+
+
+//==================================================================================================
 //	TYPEDEFS
 //--------------------------------------------------------------------------------------------------
 ////////////////////////////////////////////////////////////////////////////////////////////////////

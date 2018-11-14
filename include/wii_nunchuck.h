@@ -20,6 +20,17 @@
 
 
 //==================================================================================================
+//	CONSTANTS => THRESHOLDS
+//--------------------------------------------------------------------------------------------------
+// NOTE:	The following threshold values are not used in the library but are good reference values 
+//			for the amount of noise to ignore off of a relative zero position in an application.
+#define	WII_NUNCHUCK_THRESHOLD_ANALOG						20					//!< Threshold off of relative position to consider analog joystick to be active.
+#define	WII_NUNCHUCK_THRESHOLD_ACCELEROMETER				75					//!< Threshold off of relative position to consider accelerometer data to be active.
+
+
+
+
+//==================================================================================================
 //	TYPEDEFS
 //--------------------------------------------------------------------------------------------------
 ////////////////////////////////////////////////////////////////////////////////////////////////////
